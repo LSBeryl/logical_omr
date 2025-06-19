@@ -12,6 +12,7 @@ import { useAuth } from "./components/AuthProvider";
 export default function Main() {
   const [code, setCode] = useState("");
   const [exams, setExams] = useState([]);
+  const [examsLoading, setExamsLoading] = useState(false);
   const [showSelectiveModal, setShowSelectiveModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -20,9 +21,12 @@ export default function Main() {
   const { user, userData, loading, error, signOut } = useAuth();
 
   useEffect(() => {
-    // 시험 목록 가져오기
+    // 시험 목록 가져오기 - 최적화
     const fetchExams = async () => {
       try {
+        setExamsLoading(true);
+        console.log("시험 목록 가져오기 시작");
+
         const { data: examList, error: examError } = await supabase
           .from("Exam")
           .select("*")
@@ -32,15 +36,18 @@ export default function Main() {
           console.error("시험 목록 가져오기 실패:", examError);
           setExams([]);
         } else {
-          console.log("시험 목록:", examList);
+          console.log("시험 목록 가져오기 성공:", examList?.length || 0, "개");
           setExams(examList || []);
         }
       } catch (error) {
         console.error("시험 목록 조회 중 오류:", error);
         setExams([]);
+      } finally {
+        setExamsLoading(false);
       }
     };
 
+    // 인증 상태와 관계없이 시험 목록은 바로 가져오기
     fetchExams();
   }, []);
 
@@ -200,7 +207,20 @@ export default function Main() {
         </ExamBoxTitle>
         <ExamBoxContainer>
           <ExamBox $isLoggedIn={!!user}>
-            {exams.length > 0 ? (
+            {examsLoading ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100px",
+                  color: "#666",
+                  fontSize: "0.9rem",
+                }}
+              >
+                시험 목록을 불러오는 중...
+              </div>
+            ) : exams.length > 0 ? (
               exams.map((exam) => (
                 <ExamBoxRow key={exam.id}>
                   <div>{exam.name}</div>
