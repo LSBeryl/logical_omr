@@ -1,0 +1,22 @@
+{
+  "name": "logical_omr",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@supabase/supabase-js": "^2.50.0",
+    "axios": "^1.10.0",
+    "lucide-react": "^0.516.0",
+    "next": "^15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}
