@@ -188,7 +188,7 @@ export default function Main() {
       <TopBar>
         {userData && (
           <UserInfo>
-            현재 로그인 된 계정 : {userData.name}
+            현재 로그인 계정 : {userData.name}
             {userData.user_name && (
               <span style={{ color: "#888", marginLeft: 4 }}>
                 ({userData.user_name})
@@ -549,6 +549,7 @@ const TeacherButton = styled.button`
   margin-top: 0.5rem;
   font-size: 0.8rem;
   font-weight: 500;
+  margin-bottom: 1rem;
   &:hover {
     background: ${() => theme.primary[600]};
   }
