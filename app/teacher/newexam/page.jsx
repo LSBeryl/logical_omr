@@ -169,8 +169,8 @@ export default function NewExam() {
     setSelectiveRangeStart("23");
     setSelectiveRangeEnd("30");
 
-    // 공통 과목 배점 (1-22번)
-    setAnswerScores("2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,3,3,3,3,4,4,4");
+    // 공통 과목 배점 (1-22번) - 16번 3점으로 수정
+    setAnswerScores("2,2,3,3,3,3,3,3,4,4,4,4,4,4,3,3,3,3,4,4,4");
 
     // 공통 과목 문제 유형 (1-22번)
     const commonTypes = [
@@ -180,8 +180,8 @@ export default function NewExam() {
     setAnswerTypesArray(commonTypes);
     setAnswerTypes(commonTypes.join(","));
 
-    // 선택 과목 배점 (23-30번)
-    setSelectiveScores("2,3,3,3,3,4,4,4");
+    // 선택 과목 배점 (23-30번) - 27번 3점으로 수정
+    setSelectiveScores("2,3,3,3,3,3,4,4");
 
     // 선택 과목 문제 유형 (23-30번)
     const selectiveTypes = [
