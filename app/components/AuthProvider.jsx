@@ -23,9 +23,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
 
-        // 타임아웃 설정 (10초)
+        // 타임아웃 설정 (1.5초)
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("세션 확인 타임아웃")), 10000);
+          setTimeout(() => reject(new Error("세션 확인 타임아웃")), 1500);
         });
 
         const sessionPromise = async () => {
@@ -90,11 +90,11 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("AuthProvider: 사용자 데이터 가져오기 시작, userId:", userId);
 
-      // 타임아웃 설정 (5초)
+      // 타임아웃 설정 (1.5초)
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(
           () => reject(new Error("사용자 데이터 가져오기 타임아웃")),
-          5000
+          1500
         );
       });
 
