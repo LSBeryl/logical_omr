@@ -186,7 +186,7 @@ export default function Main() {
   return (
     <Wrapper>
       <TopBar>
-        {userData && (
+        {user && userData && (
           <UserInfo>
             현재 로그인 계정 : {userData.name}
             {userData.user_name && (
