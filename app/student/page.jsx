@@ -2,11 +2,11 @@
 
 import styled from "@emotion/styled";
 import theme from "../style/theme";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import supabase from "../supbase";
 
-export default function Student() {
+function StudentContent() {
   const [userData, setUserData] = useState(null);
   const [examData, setExamData] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -873,3 +873,11 @@ const TopButtons = styled.div`
   border-radius: 0.5rem;
   border: 1px solid ${() => theme.gray};
 `;
+
+export default function Student() {
+  return (
+    <Suspense fallback={<div>로딩 중...</div>}>
+      <StudentContent />
+    </Suspense>
+  );
+}
