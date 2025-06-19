@@ -6,6 +6,7 @@ import theme from "../style/theme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "../supbase";
+import { useAuth } from "../components/AuthProvider";
 
 export default function Login() {
   const [userName, setUserName] = useState("");
@@ -13,6 +14,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { refreshUserData } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -55,6 +57,8 @@ export default function Login() {
       if (error) {
         setError("비밀번호가 올바르지 않습니다.");
       } else {
+        // 로그인 성공 후 사용자 데이터 새로고침
+        await refreshUserData();
         router.push("/");
       }
     } catch (error) {

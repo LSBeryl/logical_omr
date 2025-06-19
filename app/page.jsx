@@ -7,67 +7,41 @@ import theme from "./style/theme";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "./supbase";
+import { useAuth } from "./components/AuthProvider";
 
 export default function Main() {
   const [code, setCode] = useState("");
-  const [user, setUser] = useState(null);
-  const [userData, setUserData] = useState(null);
   const [exams, setExams] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showSelectiveModal, setShowSelectiveModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState("");
   const router = useRouter();
 
+  const { user, userData, loading, error, signOut } = useAuth();
+
   useEffect(() => {
-    // 현재 로그인 상태 확인
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
+    // 시험 목록 가져오기
+    const fetchExams = async () => {
+      try {
+        const { data: examList, error: examError } = await supabase
+          .from("Exam")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      // 로그인한 사용자의 상세 정보 가져오기
-      if (user) {
-        const { data: userInfo } = await supabase
-          .from("User")
-          .select("user_name, role, email")
-          .eq("id", user.id)
-          .single();
-        setUserData(userInfo);
+        if (examError) {
+          console.error("시험 목록 가져오기 실패:", examError);
+          setExams([]);
+        } else {
+          console.log("시험 목록:", examList);
+          setExams(examList || []);
+        }
+      } catch (error) {
+        console.error("시험 목록 조회 중 오류:", error);
+        setExams([]);
       }
-
-      // 시험 목록 가져오기
-      const { data: examList } = await supabase
-        .from("Exam")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setExams(examList || []);
-
-      setLoading(false);
     };
 
-    checkUser();
-
-    // 인증 상태 변경 감지
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        const { data: userInfo } = await supabase
-          .from("User")
-          .select("user_name, role, email")
-          .eq("id", session.user.id)
-          .single();
-        setUserData(userInfo);
-      } else {
-        setUserData(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    fetchExams();
   }, []);
 
   useEffect(() => {
@@ -85,8 +59,8 @@ export default function Main() {
     router.push("/signup");
   };
 
-  const handleLogout = () => {
-    supabase.auth.signOut();
+  const handleLogout = async () => {
+    await signOut();
     router.push("/");
   };
 
@@ -116,7 +90,78 @@ export default function Main() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <Wrapper>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            gap: "1rem",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "1.2rem",
+              fontWeight: "600",
+              color: theme.primary[500],
+            }}
+          >
+            로딩 중...
+          </div>
+          <div style={{ fontSize: "0.9rem", color: "#666" }}>
+            인증 상태를 확인하고 있습니다
+          </div>
+          <div style={{ fontSize: "0.8rem", color: "#999" }}>
+            잠시만 기다려주세요
+          </div>
+        </div>
+      </Wrapper>
+    );
+  }
+
+  if (error) {
+    return (
+      <Wrapper>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            gap: "1rem",
+          }}
+        >
+          <div
+            style={{ fontSize: "1.2rem", fontWeight: "600", color: "#e74c3c" }}
+          >
+            로딩 오류
+          </div>
+          <div
+            style={{ fontSize: "0.9rem", color: "#666", textAlign: "center" }}
+          >
+            {error}
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              background: theme.primary[500],
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.5rem",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            다시 시도
+          </button>
+        </div>
+      </Wrapper>
+    );
   }
 
   return (
@@ -180,6 +225,27 @@ export default function Main() {
           <TeacherButton onClick={() => router.push("/teacher")}>
             선생님 페이지
           </TeacherButton>
+        )}
+        {/* 디버그 정보 표시 (개발 환경에서만) */}
+        {process.env.NODE_ENV === "development" && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: "10px",
+              right: "10px",
+              background: "rgba(0,0,0,0.8)",
+              color: "white",
+              padding: "10px",
+              borderRadius: "5px",
+              fontSize: "12px",
+              maxWidth: "300px",
+            }}
+          >
+            <div>User: {user ? "로그인됨" : "로그아웃됨"}</div>
+            <div>UserData: {userData ? userData.user_name : "없음"}</div>
+            <div>Loading: {loading ? "예" : "아니오"}</div>
+            {error && <div>Error: {error}</div>}
+          </div>
         )}
       </MainContainer>
 
