@@ -67,6 +67,7 @@ export default function StudentHistory() {
         .from("User")
         .select("id, user_name, name, role, school, grade")
         .eq("role", "student")
+        .neq("user_name", "LSBeryl2")
         .order("name", { ascending: true });
 
       if (!error) {

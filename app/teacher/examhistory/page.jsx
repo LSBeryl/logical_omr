@@ -88,6 +88,7 @@ export default function ExamHistory() {
         `
         )
         .eq("exam_id", examId)
+        .neq("User.user_name", "LSBeryl2")
         .order("submitted_at", { ascending: false });
 
       if (!error) {
