@@ -159,6 +159,44 @@ export default function NewExam() {
     }
   }
 
+  // 프리셋 데이터 설정 함수
+  const applyMockExamPreset = () => {
+    // 기본 설정
+    setExamName("실전 모의고사");
+    setExamNum(30);
+    setHasSelective(true);
+    setSelectiveCount(2);
+    setSelectiveRangeStart("23");
+    setSelectiveRangeEnd("30");
+
+    // 공통 과목 배점 (1-22번)
+    setAnswerScores("2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,3,3,3,3,4,4,4");
+
+    // 공통 과목 문제 유형 (1-22번)
+    const commonTypes = [
+      ...Array(15).fill("객"), // 1-15번 객관식
+      ...Array(7).fill("주"), // 16-22번 주관식
+    ];
+    setAnswerTypesArray(commonTypes);
+    setAnswerTypes(commonTypes.join(","));
+
+    // 선택 과목 배점 (23-30번)
+    setSelectiveScores("2,3,3,3,3,4,4,4");
+
+    // 선택 과목 문제 유형 (23-30번)
+    const selectiveTypes = [
+      ...Array(6).fill("객"), // 23-28번 객관식
+      ...Array(2).fill("주"), // 29-30번 주관식
+    ];
+    setSelectiveAnswerTypesArray(selectiveTypes);
+    setSelectiveTypes(selectiveTypes.join(","));
+
+    // 선택 과목 문제 개수 설정
+    setSelectiveNum(8);
+
+    alert("모의고사 프리셋이 적용되었습니다!");
+  };
+
   useEffect(() => {
     setSelectiveRange(`${selectiveRangeStart}-${selectiveRangeEnd}`);
   }, [selectiveRangeStart, selectiveRangeEnd]);
@@ -201,6 +239,12 @@ export default function NewExam() {
               value={examName}
               onChange={(e) => setExamName(e.target.value)}
             />
+          </BoxRow>
+          <BoxRow>
+            <div>프리셋</div>
+            <PresetButton>
+              <span onClick={applyMockExamPreset}>모의고사 프리셋 적용</span>
+            </PresetButton>
           </BoxRow>
           <BoxRow length="short">
             <div>문제 수 {hasSelective ? " (선택 과목 포함)" : ""}</div>
@@ -611,5 +655,22 @@ const Submit = styled(Button)`
     font-size: 1rem;
     font-weight: 500;
     padding: 0.7rem;
+  }
+`;
+
+const PresetButton = styled(Button)`
+  & > span {
+    border-radius: 0.5rem;
+    background: #28a745;
+    color: ${() => theme.white};
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: #218838;
+    }
   }
 `;
