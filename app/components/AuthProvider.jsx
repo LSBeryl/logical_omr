@@ -23,24 +23,35 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
 
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
+        // 타임아웃 설정 (10초)
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("세션 확인 타임아웃")), 10000);
+        });
 
-        if (error) {
-          console.error("AuthProvider: 세션 확인 오류:", error);
-          setError(error.message);
-        } else if (session?.user) {
-          console.log("AuthProvider: 기존 세션 발견:", session.user);
-          setUser(session.user);
-          await fetchUserData(session.user.id);
-        } else {
-          console.log("AuthProvider: 기존 세션 없음");
-        }
+        const sessionPromise = async () => {
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession();
+
+          if (error) {
+            console.error("AuthProvider: 세션 확인 오류:", error);
+            throw error;
+          } else if (session?.user) {
+            console.log("AuthProvider: 기존 세션 발견:", session.user);
+            setUser(session.user);
+            await fetchUserData(session.user.id);
+          } else {
+            console.log("AuthProvider: 기존 세션 없음");
+          }
+        };
+
+        await Promise.race([sessionPromise(), timeoutPromise]);
       } catch (err) {
         console.error("AuthProvider: 초기 세션 확인 중 오류:", err);
         setError(err.message);
+        setUser(null);
+        setUserData(null);
       } finally {
         setLoading(false);
         console.log("AuthProvider: 초기 세션 확인 완료");
@@ -79,22 +90,37 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("AuthProvider: 사용자 데이터 가져오기 시작, userId:", userId);
 
-      const { data, error } = await supabase
-        .from("User")
-        .select("user_name, role, email")
-        .eq("id", userId)
-        .single();
+      // 타임아웃 설정 (5초)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(
+          () => reject(new Error("사용자 데이터 가져오기 타임아웃")),
+          5000
+        );
+      });
 
-      if (error) {
-        console.error("AuthProvider: 사용자 데이터 가져오기 오류:", error);
-        setUserData(null);
-      } else {
-        console.log("AuthProvider: 사용자 데이터 가져오기 성공:", data);
-        setUserData(data);
-      }
+      const fetchPromise = async () => {
+        const { data, error } = await supabase
+          .from("User")
+          .select("user_name, role, email")
+          .eq("id", userId)
+          .single();
+
+        if (error) {
+          console.error("AuthProvider: 사용자 데이터 가져오기 오류:", error);
+          throw error;
+        } else {
+          console.log("AuthProvider: 사용자 데이터 가져오기 성공:", data);
+          setUserData(data);
+        }
+      };
+
+      await Promise.race([fetchPromise(), timeoutPromise]);
     } catch (err) {
       console.error("AuthProvider: 사용자 데이터 조회 중 오류:", err);
       setUserData(null);
+
+      // 에러가 발생해도 로딩 상태는 해제
+      setLoading(false);
     }
   };
 

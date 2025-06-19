@@ -138,12 +138,24 @@ export default function Main() {
           <div
             style={{ fontSize: "1.2rem", fontWeight: "600", color: "#e74c3c" }}
           >
-            로딩 오류
+            연결 오류
           </div>
           <div
-            style={{ fontSize: "0.9rem", color: "#666", textAlign: "center" }}
+            style={{
+              fontSize: "0.9rem",
+              color: "#666",
+              textAlign: "center",
+              maxWidth: "400px",
+            }}
           >
-            {error}
+            {error.includes("타임아웃")
+              ? "서버 연결이 지연되고 있습니다. 잠시 후 다시 시도해주세요."
+              : error.includes("환경 변수")
+              ? "서버 설정에 문제가 있습니다. 관리자에게 문의해주세요."
+              : error}
+          </div>
+          <div style={{ fontSize: "0.8rem", color: "#999" }}>
+            오류 코드: {error}
           </div>
           <button
             onClick={() => window.location.reload()}
