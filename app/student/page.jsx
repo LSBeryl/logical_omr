@@ -2,11 +2,11 @@
 
 import styled from "@emotion/styled";
 import theme from "../style/theme";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import supabase from "../supbase";
 
-export default function Student() {
+function StudentContent() {
   const [userData, setUserData] = useState(null);
   const [examData, setExamData] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -198,31 +198,25 @@ export default function Student() {
       const questionNumber = index + 1;
       const isCorrect = String(answer) === String(correctAnswers[index]);
 
-      // 문제별 배점 계산
-      let questionScore = 1; // 기본 배점
-      if (examData.answer_scores) {
-        const scores = examData.answer_scores.split(",");
-        questionScore = parseInt(scores[index]) || 1;
-      }
+      gradedAnswers[questionNumber] = {
+        answer: answer,
+        isCorrect: isCorrect,
+      };
 
       if (isCorrect) {
         correctCount++;
-        earnedScore += questionScore;
-        gradedAnswers[questionNumber] = "correct"; // 빨간 동그라미
-      } else {
-        gradedAnswers[questionNumber] = "incorrect"; // 빨간 X
+        earnedScore += 1; // 기본 점수 1점
       }
-      totalScore += questionScore;
+      totalScore += 1; // 기본 점수 1점
     });
 
     return {
-      gradedAnswers,
       score: {
         correct: correctCount,
-        total: correctAnswers.length,
+        total: totalScore,
         earnedScore: earnedScore,
-        totalScore: totalScore,
       },
+      gradedAnswers: gradedAnswers,
     };
   };
 
@@ -231,10 +225,14 @@ export default function Student() {
   };
 
   const handleAutoFillClick = () => {
-    // 이미 모든 답이 입력되었는지 확인
-    const filledAnswers = Object.keys(answers).length;
-    if (filledAnswers >= examData.question_num) {
-      alert("이미 모든 답이 입력되었습니다.");
+    // 모든 답이 이미 채워져 있는지 확인
+    const allFilled = Array.from(
+      { length: examData.question_num },
+      (_, i) => answers[i + 1]
+    ).every((answer) => answer !== undefined && answer !== "");
+
+    if (allFilled) {
+      alert("모든 답이 이미 입력되어 있습니다.");
       return;
     }
 
@@ -242,318 +240,186 @@ export default function Student() {
   };
 
   const executeAutoFill = () => {
-    const newAnswers = { ...answers };
-
-    for (let i = 0; i < examData.question_num; i++) {
-      const questionNumber = i + 1;
-
-      // 이미 답이 있으면 건너뛰기
-      if (newAnswers[questionNumber]) continue;
-
-      // 문제 유형 확인
-      let answerType = "객";
-      if (examData.has_selective && examData.selective_range) {
-        const [start, end] = examData.selective_range.split("-").map(Number);
-        if (questionNumber >= start && questionNumber <= end) {
-          const selectiveIndex = questionNumber - start;
-          answerType =
-            examData.selective_types?.split(",")[selectiveIndex] || "객";
+    // 랜덤 답 생성 (1-5 또는 0-999)
+    const newAnswers = {};
+    for (let i = 1; i <= examData.question_num; i++) {
+      if (!answers[i]) {
+        // 답안 유형에 따라 다른 랜덤 값 생성
+        const answerType = getAnswerType(i);
+        if (answerType === "객") {
+          newAnswers[i] = Math.floor(Math.random() * 5) + 1; // 1-5
         } else {
-          answerType = examData.answer_types?.split(",")[i] || "객";
+          newAnswers[i] = Math.floor(Math.random() * 1000); // 0-999
         }
-      } else {
-        answerType = examData.answer_types?.split(",")[i] || "객";
-      }
-
-      // 랜덤 답 생성
-      if (answerType === "객") {
-        // 객관식: 1~5 중 랜덤
-        newAnswers[questionNumber] = Math.floor(Math.random() * 5) + 1;
-      } else {
-        // 주관식: 1~999 중 랜덤
-        newAnswers[questionNumber] = Math.floor(Math.random() * 999) + 1;
       }
     }
-
-    setAnswers(newAnswers);
+    setAnswers((prev) => ({ ...prev, ...newAnswers }));
     setShowAutoFillModal(false);
   };
 
+  const getAnswerType = (questionNumber) => {
+    if (examData.has_selective && examData.selective_range) {
+      const [start, end] = examData.selective_range.split("-").map(Number);
+      if (questionNumber >= start && questionNumber <= end) {
+        // 선택 과목 범위
+        const selectiveIndex = questionNumber - start;
+        const selectiveTypes = examData.selective_types?.split(",") || [];
+        return selectiveTypes[selectiveIndex] || "객";
+      } else {
+        // 공통 과목 범위
+        const commonIndex = questionNumber - 1;
+        const commonTypes = examData.answer_types?.split(",") || [];
+        return commonTypes[commonIndex] || "객";
+      }
+    } else {
+      // 선택 과목이 없는 경우
+      const types = examData.answer_types?.split(",") || [];
+      return types[questionNumber - 1] || "객";
+    }
+  };
+
+  const renderQuestion = (questionNumber) => {
+    const answerType = getAnswerType(questionNumber);
+    const currentAnswer = answers[questionNumber];
+    const isGraded = graded && gradedAnswers[questionNumber];
+
+    if (answerType === "객") {
+      return (
+        <QuestionRow key={questionNumber}>
+          <QuestionNumber>
+            {questionNumber}번
+            {isGraded && (
+              <GradingMark $isCorrect={isGraded.isCorrect}>
+                {isGraded.isCorrect ? "○" : "✗"}
+              </GradingMark>
+            )}
+          </QuestionNumber>
+          <OptionsContainer>
+            {[1, 2, 3, 4, 5].map((option) => (
+              <Option
+                key={option}
+                $isSelected={currentAnswer === option}
+                onClick={() => handleAnswerChange(questionNumber, option)}
+              >
+                {option}
+              </Option>
+            ))}
+          </OptionsContainer>
+        </QuestionRow>
+      );
+    } else {
+      return (
+        <QuestionRow key={questionNumber}>
+          <QuestionNumber>
+            {questionNumber}번
+            {isGraded && (
+              <GradingMark $isCorrect={isGraded.isCorrect}>
+                {isGraded.isCorrect ? "○" : "✗"}
+              </GradingMark>
+            )}
+          </QuestionNumber>
+          <Input
+            type="text"
+            placeholder="답을 입력하세요"
+            value={currentAnswer || ""}
+            onChange={(e) => {
+              handleInputChange(e);
+              handleAnswerChange(questionNumber, e.target.value);
+            }}
+            maxLength={3}
+          />
+        </QuestionRow>
+      );
+    }
+  };
+
+  if (!examData) {
+    return <div>시험 정보를 찾을 수 없습니다.</div>;
+  }
+
   return (
     <Wrapper>
-      <Title>
-        <div>현재 응시 시험명 : </div>
-        <div>{examData?.name || "로딩 중..."}</div>
-      </Title>
-
-      {/* 상단 버튼들 */}
-      <TopButtons>
-        <AutoFillButton onClick={handleAutoFillClick}>자동 찍기</AutoFillButton>
-        <HomeButton onClick={() => router.push("/")}>홈</HomeButton>
-      </TopButtons>
-
-      {/* 점수 표시 */}
-      {graded && (
-        <ScoreDisplay>
-          <div>
-            <strong>
-              맞은 문제: ({score.correct} / {score.total})
-            </strong>
-          </div>
-          <div>
-            <strong>
-              점수: ({score.earnedScore} / {score.totalScore})
-            </strong>
-          </div>
-        </ScoreDisplay>
-      )}
-
-      <UserInfo>
-        <div>
-          응시자(닉네임) : {userData?.name || "알 수 없음"}(
-          {userData?.user_name || "알 수 없음"})
-        </div>
-        {userData?.school && (
-          <>
-            <div>학교 : {userData.school}</div>
-            {userData?.grade && (
-              <>
-                <div>학년 : {userData.grade}학년</div>
-              </>
-            )}
-          </>
+      <Header>
+        <Title>시험 응시</Title>
+        <UserInfo>
+          {userData?.name} ({userData?.user_name})
+          {selectiveSubject && (
+            <span>
+              {" "}
+              - {selectiveSubject.replace("selective_", "선택 과목 ")}
+            </span>
+          )}
+        </UserInfo>
+        <ExamInfo>
+          {examData.name} - {examData.question_num}문제
+        </ExamInfo>
+        {graded && (
+          <ScoreInfo>
+            점수: {score.earnedScore}점 / {score.total}점 (맞힌 개수:{" "}
+            {score.correct}개)
+          </ScoreInfo>
         )}
-        {selectiveSubject && (
-          <div>
-            선택 과목 : {selectiveSubject.replace("selective_", "선택 과목 ")}
-          </div>
+      </Header>
+
+      <ButtonContainer>
+        <HomeButton onClick={() => router.push("/")}>홈으로</HomeButton>
+        <AutoFillButton onClick={handleAutoFillClick}>자동 답안</AutoFillButton>
+      </ButtonContainer>
+
+      <QuestionsContainer>
+        {Array.from({ length: examData.question_num }, (_, i) =>
+          renderQuestion(i + 1)
         )}
-      </UserInfo>
-      <OMR>
-        <OMRHead>
-          <div>
-            <div>문번</div>
-          </div>
-          <div>
-            <div>
-              <span>답</span>
-              <span>란</span>
-            </div>
-          </div>
-        </OMRHead>
-        {examData &&
-          Array.from({ length: examData.question_num }).map((_, i) => {
-            const questionNumber = i + 1;
+      </QuestionsContainer>
 
-            // 선택 과목이 있고, 현재 문제가 선택 과목 범위에 있는지 확인
-            let answerType = "객"; // 기본값
-
-            if (examData.has_selective && examData.selective_range) {
-              const [start, end] = examData.selective_range
-                .split("-")
-                .map(Number);
-              if (questionNumber >= start && questionNumber <= end) {
-                // 선택 과목 범위의 문제
-                const selectiveIndex = questionNumber - start;
-                answerType =
-                  examData.selective_types?.split(",")[selectiveIndex] || "객";
-              } else {
-                // 공통 과목 범위의 문제
-                answerType = examData.answer_types?.split(",")[i] || "객";
-              }
-            } else {
-              // 선택 과목이 없는 경우
-              answerType = examData.answer_types?.split(",")[i] || "객";
-            }
-
-            return (
-              <OMRRow key={i}>
-                <div>
-                  <div>
-                    {questionNumber}
-                    {graded && (
-                      <GradeMark>
-                        {gradedAnswers[questionNumber] === "correct" ? (
-                          <CorrectCircle></CorrectCircle>
-                        ) : (
-                          <IncorrectMark>✗</IncorrectMark>
-                        )}
-                      </GradeMark>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  {answerType === "객" ? (
-                    // 객관식
-                    <div>
-                      <div
-                        onClick={() => handleAnswerChange(questionNumber, 1)}
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 1
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 1
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                        }}
-                      >
-                        1
-                      </div>
-                      <div
-                        onClick={() => handleAnswerChange(questionNumber, 2)}
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 2
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 2
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                        }}
-                      >
-                        2
-                      </div>
-                      <div
-                        onClick={() => handleAnswerChange(questionNumber, 3)}
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 3
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 3
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                        }}
-                      >
-                        3
-                      </div>
-                      <div
-                        onClick={() => handleAnswerChange(questionNumber, 4)}
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 4
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 4
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                        }}
-                      >
-                        4
-                      </div>
-                      <div
-                        onClick={() => handleAnswerChange(questionNumber, 5)}
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 5
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 5
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                        }}
-                      >
-                        5
-                      </div>
-                    </div>
-                  ) : (
-                    // 주관식
-                    <input
-                      type="number"
-                      max={999}
-                      min={0}
-                      maxLength={3}
-                      step={1}
-                      value={answers[questionNumber] || ""}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        handleAnswerChange(
-                          questionNumber,
-                          parseInt(e.target.value) || 0
-                        );
-                      }}
-                      placeholder="주관식 답 입력"
-                    />
-                  )}
-                </div>
-              </OMRRow>
-            );
-          })}
-      </OMR>
-      <SubmitButton onClick={handleSubmitClick}>제출</SubmitButton>
+      <SubmitButton onClick={handleSubmitClick}>제출하기</SubmitButton>
 
       {/* 제출 확인 모달 */}
       {showSubmitModal && (
-        <ModalWrapper
-          onClick={(e) => {
-            if (e.target.id === "modal-background") {
-              setShowSubmitModal(false);
-            }
-          }}
-          id="modal-background"
-        >
-          <ModalContent>
-            <ModalTitle>제출 확인</ModalTitle>
-            <ModalText>답안을 제출하시겠습니까?</ModalText>
+        <ModalOverlay>
+          <Modal>
+            <ModalTitle>답안 제출</ModalTitle>
+            <ModalContent>
+              <p>정말로 답안을 제출하시겠습니까?</p>
+              <p>제출 후에는 수정할 수 없습니다.</p>
+            </ModalContent>
             <ModalButtons>
-              <ModalButton onClick={() => setShowSubmitModal(false)}>
+              <CancelButton onClick={() => setShowSubmitModal(false)}>
                 취소
-              </ModalButton>
-              <ModalButton
-                onClick={handleSubmit}
-                style={{
-                  backgroundColor: theme.primary[500],
-                  color: theme.white,
-                }}
-              >
-                확인
-              </ModalButton>
+              </CancelButton>
+              <ConfirmButton onClick={handleSubmit}>제출</ConfirmButton>
             </ModalButtons>
-          </ModalContent>
-        </ModalWrapper>
+          </Modal>
+        </ModalOverlay>
       )}
 
-      {/* 자동 찍기 확인 모달 */}
+      {/* 자동 답안 확인 모달 */}
       {showAutoFillModal && (
-        <ModalWrapper
-          onClick={(e) => {
-            if (e.target.id === "modal-background") {
-              setShowAutoFillModal(false);
-            }
-          }}
-          id="modal-background"
-        >
-          <ModalContent>
-            <ModalTitle>자동 찍기 확인</ModalTitle>
-            <ModalText>정말 다 찍으시겠어요?</ModalText>
-            <ModalSubText>
-              지금까지 입력한 답안은 유지되며, 빈칸으로 남아있는 번호만
-              찍습니다.
-            </ModalSubText>
+        <ModalOverlay>
+          <Modal>
+            <ModalTitle>자동 답안 생성</ModalTitle>
+            <ModalContent>
+              <p>빈 답안에 랜덤한 답을 자동으로 생성합니다.</p>
+              <p>이미 입력된 답안은 변경되지 않습니다.</p>
+            </ModalContent>
             <ModalButtons>
-              <ModalButton onClick={() => setShowAutoFillModal(false)}>
+              <CancelButton onClick={() => setShowAutoFillModal(false)}>
                 취소
-              </ModalButton>
-              <ModalButton
-                onClick={executeAutoFill}
-                style={{
-                  backgroundColor: theme.primary[500],
-                  color: theme.white,
-                }}
-              >
-                확인
-              </ModalButton>
+              </CancelButton>
+              <ConfirmButton onClick={executeAutoFill}>생성</ConfirmButton>
             </ModalButtons>
-          </ModalContent>
-        </ModalWrapper>
+          </Modal>
+        </ModalOverlay>
       )}
     </Wrapper>
+  );
+}
+
+export default function Student() {
+  return (
+    <Suspense fallback={<div>로딩 중...</div>}>
+      <StudentContent />
+    </Suspense>
   );
 }
 
@@ -577,118 +443,49 @@ const Wrapper = styled.div`
   padding: 2rem 0;
 `;
 
-const Title = styled.div`
+const Header = styled.div`
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: 1px solid ${() => theme.gray};
+`;
+
+const Title = styled.h1`
+  margin-bottom: 0.5rem;
 `;
 
 const UserInfo = styled.div`
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: 1px solid ${() => theme.gray};
 `;
 
-const OMR = styled.div`
-  border: 2px solid ${() => theme.primary[500]};
+const ExamInfo = styled.div`
+  padding: 0.5rem;
   border-radius: 0.5rem;
-  width: 200px;
+  border: 1px solid ${() => theme.gray};
 `;
 
-const OMRHead = styled.div`
+const ScoreInfo = styled.div`
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid ${() => theme.gray};
+`;
+
+const ButtonContainer = styled.div`
   display: flex;
-  &:nth-of-type(1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
-  &:nth-of-type(5n + 1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
-  & > div {
-    text-align: center;
-    &:nth-of-type(1) {
-      width: 55px;
-      border-right: 1px solid ${() => theme.primary[300]};
-      & > div {
-        border-radius: 0.5rem 0 0 0;
-      }
-    }
-    &:nth-of-type(2) {
-      flex-grow: 1;
-      & > div {
-        border-radius: 0 0.5rem 0 0;
-        display: flex;
-        justify-content: space-evenly;
-      }
-    }
-    & > div {
-      padding: 0.5rem;
-      background-color: ${() => theme.primary[100]};
-    }
-  }
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid ${() => theme.gray};
 `;
 
-const OMRRow = styled.div`
-  display: flex;
-  &:nth-of-type(1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
-  &:nth-of-type(5n + 1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
-  & > div {
-    text-align: center;
-    &:nth-of-type(1) {
-      // 문제 번호
-      width: 55px;
-      border-right: 1px solid ${() => theme.primary[300]};
-      background-color: ${() => theme.primary[100]};
-    }
-    &:nth-of-type(2) {
-      // 선지 컨테이너 컨테이너
-      flex-grow: 1;
-      display: flex;
-      align-items: center;
-      & > div {
-        // 선지 컨테이너
-        flex-grow: 1;
-        display: flex;
-        justify-content: space-around;
-        & > div {
-          // 선지
-          font-size: 0.7rem;
-          border: 1px solid ${() => theme.primary[300]};
-          padding: 0.15rem;
-          border-radius: 0.5rem;
-          cursor: pointer;
-        }
-      }
-      & > input {
-        width: 100%;
-        height: 100%;
-        border: none;
-        outline: none;
-        text-align: center;
-        font-size: 0.9rem;
-      }
-    }
-    & > div {
-      padding: 0.5rem;
-    }
-  }
-  &:last-of-type {
-    border-bottom: 0;
-    & > div {
-      border-bottom-left-radius: 0.5rem;
-    }
-  }
-`;
-
-const SubmitButton = styled.button`
+const HomeButton = styled.button`
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 0.5rem;
@@ -720,7 +517,7 @@ const AutoFillButton = styled.button`
   }
 `;
 
-const HomeButton = styled.button`
+const SubmitButton = styled.button`
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 0.5rem;
@@ -736,39 +533,95 @@ const HomeButton = styled.button`
   }
 `;
 
-const ScoreDisplay = styled.div`
-  padding: 0.5rem;
+const QuestionsContainer = styled.div`
+  border: 2px solid ${() => theme.primary[500]};
   border-radius: 0.5rem;
-  border: 1px solid ${() => theme.gray};
-  background-color: ${() => theme.primary[100]};
-  text-align: center;
+  width: 200px;
+`;
 
+const QuestionRow = styled.div`
+  display: flex;
+  &:nth-of-type(1) {
+    border-bottom: 1px solid ${() => theme.primary[300]};
+  }
+  &:nth-of-type(5n + 1) {
+    border-bottom: 1px solid ${() => theme.primary[300]};
+  }
   & > div {
-    margin: 0.25rem 0;
+    text-align: center;
+    &:nth-of-type(1) {
+      width: 55px;
+      border-right: 1px solid ${() => theme.primary[300]};
+      background-color: ${() => theme.primary[100]};
+    }
+    &:nth-of-type(2) {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      & > div {
+        flex-grow: 1;
+        display: flex;
+        justify-content: space-around;
+        & > div {
+          font-size: 0.7rem;
+          border: 1px solid ${() => theme.primary[300]};
+          padding: 0.15rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+        }
+      }
+      & > input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+    }
+    & > div {
+      padding: 0.5rem;
+    }
+  }
+  &:last-of-type {
+    border-bottom: 0;
+    & > div {
+      border-bottom-left-radius: 0.5rem;
+    }
   }
 `;
 
-const GradeMark = styled.span`
-  margin-left: 0.5rem;
+const QuestionNumber = styled.div`
+  width: 55px;
+  border-right: 1px solid ${() => theme.primary[300]};
+  background-color: ${() => theme.primary[100]};
 `;
 
-const CorrectCircle = styled.span`
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid red;
-  border-radius: 50%;
-  background-color: transparent;
-  vertical-align: middle;
-  margin-left: 2px;
+const OptionsContainer = styled.div`
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-around;
 `;
 
-const IncorrectMark = styled.span`
-  color: red;
-  font-size: 1.2rem;
+const Option = styled.div`
+  padding: 0.15rem;
+  border: 1px solid ${() => theme.primary[300]};
+  border-radius: 0.5rem;
+  cursor: pointer;
+  background-color: ${({ $isSelected }) =>
+    $isSelected ? theme.primary[300] : "transparent"};
 `;
 
-const ModalWrapper = styled.div`
+const Input = styled.input`
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  text-align: center;
+  font-size: 0.9rem;
+`;
+
+const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -780,7 +633,7 @@ const ModalWrapper = styled.div`
   align-items: center;
 `;
 
-const ModalContent = styled.div`
+const Modal = styled.div`
   background-color: ${() => theme.white};
   padding: 2rem;
   border-radius: 0.5rem;
@@ -792,14 +645,8 @@ const ModalTitle = styled.h2`
   margin-bottom: 1rem;
 `;
 
-const ModalText = styled.p`
+const ModalContent = styled.p`
   margin-bottom: 2rem;
-`;
-
-const ModalSubText = styled.p`
-  margin-bottom: 2rem;
-  color: gray;
-  font-size: 0.9rem;
 `;
 
 const ModalButtons = styled.div`
@@ -807,7 +654,7 @@ const ModalButtons = styled.div`
   justify-content: space-around;
 `;
 
-const ModalButton = styled.button`
+const CancelButton = styled.button`
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 0.5rem;
@@ -823,10 +670,23 @@ const ModalButton = styled.button`
   }
 `;
 
-const TopButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
+const ConfirmButton = styled.button`
+  padding: 0.75rem 1rem;
+  border: none;
   border-radius: 0.5rem;
-  border: 1px solid ${() => theme.gray};
+  background-color: ${() => theme.primary[500]};
+  color: ${() => theme.white};
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: ${() => theme.primary[600]};
+  }
+`;
+
+const GradingMark = styled.span`
+  margin-left: 0.5rem;
+  color: ${({ $isCorrect }) => ($isCorrect ? theme.primary[500] : "red")};
 `;
