@@ -185,6 +185,18 @@ export default function Main() {
 
   return (
     <Wrapper>
+      <TopBar>
+        {userData && (
+          <UserInfo>
+            현재 로그인 된 계정 : {userData.name}
+            {userData.user_name && (
+              <span style={{ color: "#888", marginLeft: 4 }}>
+                ({userData.user_name})
+              </span>
+            )}
+          </UserInfo>
+        )}
+      </TopBar>
       <Title>
         <div>
           <img src="/icon.png" alt="" />
@@ -332,6 +344,22 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 3rem 0;
+`;
+
+const TopBar = styled.div`
+  width: 100vw;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5rem 2rem 0 0;
+  min-height: 2rem;
+`;
+
+const UserInfo = styled.div`
+  font-size: 0.95rem;
+  color: #444;
+  opacity: 0.8;
+  font-weight: 400;
 `;
 
 const Title = styled.div`

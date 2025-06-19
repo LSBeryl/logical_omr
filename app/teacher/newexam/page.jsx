@@ -7,6 +7,7 @@ import { css } from "@emotion/react";
 import { useEffect, useState, Fragment } from "react";
 import supabase from "../../supbase";
 import TeacherNewExamModal from "../../components/TeacherNewExamModal";
+import ExamSummaryModal from "../../components/ExamSummaryModal";
 
 export default function NewExam() {
   // 폼 내용 시작 //
@@ -40,38 +41,99 @@ export default function NewExam() {
 
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
+  const [showSummary, setShowSummary] = useState(false);
 
-  async function AddNewExam() {
-    // 폼 검증
+  async function doAddNewExam() {
+    // 폼 검증 (기존 + 모든 답 입력 여부 추가)
     if (!examName.trim()) {
       alert("시험명을 입력해주세요.");
       return;
     }
-
     if (!examNum || examNum <= 0) {
       alert("문제 수를 입력해주세요.");
       return;
     }
-
     if (hasSelective) {
       if (!selectiveRangeStart || !selectiveRangeEnd) {
         alert("선택 과목 문제 범위를 지정해주세요.");
         return;
       }
-
       if (Number(selectiveRangeStart) >= Number(selectiveRangeEnd)) {
         alert("선택 과목 시작 번호는 끝 번호보다 작아야 합니다.");
         return;
       }
-
       if (Number(selectiveRangeEnd) > examNum) {
         alert("선택 과목 끝 번호는 전체 문제 수보다 클 수 없습니다.");
         return;
       }
-
       if (selectiveCount <= 0) {
         alert("선택 과목 개수를 입력해주세요.");
         return;
+      }
+    }
+    // 공통 과목 답 필수 체크
+    const commonAnswersArr = answers.split(",").map((v) => v.trim());
+    const commonTypesArr = answerTypesArray;
+    const commonScoresArr = answerScores.split(",").map((v) => v.trim());
+    const commonCount = hasSelective
+      ? examNum - (Number(selectiveRangeEnd) - Number(selectiveRangeStart) + 1)
+      : examNum;
+    if (
+      !answers ||
+      commonAnswersArr.length !== commonCount ||
+      commonAnswersArr.some((v) => !v)
+    ) {
+      alert("공통 과목 답을 모두 입력해주세요.");
+      return;
+    }
+    if (
+      !answerScores ||
+      commonScoresArr.length !== commonCount ||
+      commonScoresArr.some((v) => !v)
+    ) {
+      alert("공통 과목 배점을 모두 입력해주세요.");
+      return;
+    }
+    if (
+      !commonTypesArr ||
+      commonTypesArr.length !== commonCount ||
+      commonTypesArr.some((v) => !v)
+    ) {
+      alert("공통 과목 문제 유형을 모두 입력해주세요.");
+      return;
+    }
+    // 선택 과목 답 필수 체크
+    if (hasSelective) {
+      if (
+        !selectiveScores ||
+        selectiveScores
+          .split(",")
+          .map((v) => v.trim())
+          .some((v) => !v)
+      ) {
+        alert("선택 과목 배점을 모두 입력해주세요.");
+        return;
+      }
+      if (
+        !selectiveAnswerTypesArray ||
+        selectiveAnswerTypesArray.length !==
+          Number(selectiveRangeEnd) - Number(selectiveRangeStart) + 1 ||
+        selectiveAnswerTypesArray.some((v) => !v)
+      ) {
+        alert("선택 과목 문제 유형을 모두 입력해주세요.");
+        return;
+      }
+      for (const subject of selectiveSubjects) {
+        const arr = subject.answers.split(",").map((v) => v.trim());
+        if (
+          !subject.answers ||
+          arr.length !==
+            Number(selectiveRangeEnd) - Number(selectiveRangeStart) + 1 ||
+          arr.some((v) => !v)
+        ) {
+          alert(`${subject.name}의 답을 모두 입력해주세요.`);
+          return;
+        }
       }
     }
 
@@ -162,7 +224,7 @@ export default function NewExam() {
   // 프리셋 데이터 설정 함수
   const applyMockExamPreset = () => {
     // 기본 설정
-    setExamName("실전 모의고사");
+    setExamName("20XX년 XX월 XX일 실전 모의고사");
     setExamNum(30);
     setHasSelective(true);
     setSelectiveCount(2);
@@ -225,6 +287,17 @@ export default function NewExam() {
       setSelectiveSubjects(newSelectiveSubjects);
     }
   }, [selectiveCount, hasSelective]);
+
+  // "만들기" 버튼 클릭 시 요약 모달 띄우기
+  const handleMakeClick = () => {
+    setShowSummary(true);
+  };
+
+  // 요약 모달에서 최종 등록 버튼 클릭 시
+  const handleSummaryConfirm = async () => {
+    setShowSummary(false);
+    await doAddNewExam();
+  };
 
   return (
     <Wrapper>
@@ -508,7 +581,7 @@ export default function NewExam() {
         </Box>
       </BoxContainer>
       <Submit>
-        <span onClick={AddNewExam}>만들기</span>
+        <span onClick={handleMakeClick}>만들기</span>
       </Submit>
       {showModal ? (
         <TeacherNewExamModal
@@ -531,6 +604,22 @@ export default function NewExam() {
           setSelectiveScores={setSelectiveScores}
         />
       ) : null}
+      <ExamSummaryModal
+        open={showSummary}
+        onClose={() => setShowSummary(false)}
+        onConfirm={handleSummaryConfirm}
+        examName={examName}
+        examNum={examNum}
+        hasSelective={hasSelective}
+        selectiveCount={selectiveCount}
+        selectiveRange={selectiveRange}
+        answerScores={answerScores}
+        answerTypesArray={answerTypesArray}
+        answers={answers}
+        selectiveScores={selectiveScores}
+        selectiveAnswerTypesArray={selectiveAnswerTypesArray}
+        selectiveSubjects={selectiveSubjects}
+      />
     </Wrapper>
   );
 }

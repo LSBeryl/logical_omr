@@ -159,6 +159,7 @@ export default function StudentHistory() {
             <SubmitList>
               {submits.map((submit, index) => (
                 <SubmitItem key={index}>
+                  <ExamTitle>{submit.Exam?.name || "알 수 없음"}</ExamTitle>
                   <SubmitContent>
                     <ExamInfo>
                       <div>
@@ -352,6 +353,7 @@ const StudentName = styled.h3`
   font-weight: 600;
   color: ${() => theme.primary[500]};
   line-height: 1.2;
+  margin: 0 0 0.5rem 0;
 `;
 
 const StudentDetails = styled.div`
@@ -456,4 +458,12 @@ const AnswerInfo = styled.div`
     display: flex;
     align-items: center;
   }
+`;
+
+// 추가: 시험명 스타일
+const ExamTitle = styled.div`
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: ${() => theme.primary[500]};
+  margin-bottom: 0.5rem;
 `;

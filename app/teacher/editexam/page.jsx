@@ -115,8 +115,8 @@ export default function EditExam() {
         <ExamList>
           {exams.map((exam, index) => (
             <ExamItem key={index}>
+              <ExamTitle>{exam.name}</ExamTitle>
               <ExamContent>
-                <ExamTitle>{exam.name}</ExamTitle>
                 <ExamDetails>
                   <div>문제 수: {exam.question_num}문제</div>
                   <div>선택과목: {exam.has_selective ? "있음" : "없음"}</div>
@@ -219,11 +219,11 @@ const ExamContent = styled.div`
   justify-content: center;
 `;
 
-const ExamTitle = styled.h3`
-  font-size: 1.3rem;
+const ExamTitle = styled.div`
+  font-size: 1.05rem;
   font-weight: 700;
   color: ${() => theme.primary[500]};
-  line-height: 1.2;
+  margin: 0 0 0.5rem 0;
 `;
 
 const ExamDetails = styled.div`

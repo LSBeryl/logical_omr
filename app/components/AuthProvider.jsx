@@ -88,18 +88,18 @@ export const AuthProvider = ({ children }) => {
         userId
       );
 
-      const { data, error } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from("User")
-        .select("user_name, role, email")
+        .select("user_name, name, role, email")
         .eq("id", userId)
         .single();
 
-      if (error) {
-        console.error("AuthProvider: 사용자 데이터 가져오기 오류:", error);
+      if (userError) {
+        console.error("AuthProvider: 사용자 데이터 가져오기 오류:", userError);
         // 에러가 있어도 기존 기본 데이터는 유지
       } else {
-        console.log("AuthProvider: 사용자 데이터 가져오기 성공:", data);
-        setUserData(data);
+        console.log("AuthProvider: 사용자 데이터 가져오기 성공:", userData);
+        setUserData(userData);
       }
     } catch (err) {
       console.error("AuthProvider: 사용자 데이터 조회 중 오류:", err);

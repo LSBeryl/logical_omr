@@ -164,6 +164,20 @@ export default function ExamHistory() {
             <SubmitList>
               {submits.map((submit, index) => (
                 <SubmitItem key={index}>
+                  <BoxHeader>
+                    {submit.User?.name ? (
+                      <span>
+                        <strong>{submit.User.name}</strong>
+                        {submit.User.user_name && (
+                          <span style={{ color: "#888", marginLeft: 4 }}>
+                            ({submit.User.user_name})
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span>알 수 없음</span>
+                    )}
+                  </BoxHeader>
                   <SubmitContent>
                     <StudentInfo>
                       <div>
@@ -357,6 +371,7 @@ const ExamTitle = styled.h3`
   font-weight: 700;
   color: ${() => theme.primary[500]};
   line-height: 1.2;
+  margin: 0 0 0.5rem 0;
 `;
 
 const ExamDetails = styled.div`
@@ -432,6 +447,12 @@ const SubmitItem = styled.div`
   border-radius: 0.5rem;
   padding: 1.5rem;
   background: #f9f9f9;
+`;
+
+const BoxHeader = styled.div`
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #666;
 `;
 
 const SubmitContent = styled.div`
