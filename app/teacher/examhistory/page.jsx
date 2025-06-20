@@ -292,6 +292,19 @@ const Wrapper = styled.div`
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+
+  @media (max-width: 1024px) {
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  @media (max-width: 928px) {
+    padding: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Header = styled.div`
@@ -301,17 +314,57 @@ const Header = styled.div`
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 2px solid ${() => theme.primary[500]};
+
+  @media (max-width: 1024px) {
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 928px) {
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: stretch;
+    margin-bottom: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+    margin-bottom: 1rem;
+  }
 `;
 
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
   color: ${() => theme.primary[500]};
+
+  @media (max-width: 1024px) {
+    font-size: 1.8rem;
+  }
+
+  @media (max-width: 928px) {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    text-align: center;
+  }
 `;
 
 const HeaderRight = styled.div`
   display: flex;
   gap: 1rem;
+
+  @media (max-width: 928px) {
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    justify-content: center;
+  }
 `;
 
 const HomeButton = styled.button`
@@ -327,6 +380,21 @@ const HomeButton = styled.button`
   &:hover {
     background: #f0f0f0;
   }
+
+  @media (max-width: 1024px) {
+    padding: 0.7rem 1.3rem;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const NoDataMessage = styled.div`
@@ -334,6 +402,21 @@ const NoDataMessage = styled.div`
   padding: 3rem;
   font-size: 1.2rem;
   color: #666;
+
+  @media (max-width: 1024px) {
+    padding: 2.5rem;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 2rem;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 2rem 1rem;
+    font-size: 1rem;
+  }
 `;
 
 const ExamList = styled.div`
@@ -357,6 +440,25 @@ const ExamItem = styled.div`
   &:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
+
+  @media (max-width: 1024px) {
+    padding: 1.3rem;
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 928px) {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.2rem;
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+    gap: 0.8rem;
+  }
 `;
 
 const ExamContent = styled.div`
@@ -372,6 +474,20 @@ const ExamTitle = styled.h3`
   color: ${() => theme.primary[500]};
   line-height: 1.2;
   margin: 0 0 0.5rem 0;
+
+  @media (max-width: 1024px) {
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 928px) {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+    text-align: center;
+  }
 `;
 
 const ExamDetails = styled.div`
@@ -384,6 +500,32 @@ const ExamDetails = styled.div`
   & > div {
     display: flex;
     align-items: center;
+  }
+
+  @media (max-width: 1024px) {
+    gap: 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 928px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    font-size: 0.8rem;
+
+    & > div {
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+
+    & > div {
+      justify-content: center;
+    }
   }
 `;
 
@@ -399,6 +541,23 @@ const ViewButton = styled.button`
 
   &:hover {
     background: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 1024px) {
+    padding: 0.7rem 1.3rem;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
   }
 `;
 
@@ -416,6 +575,18 @@ const BackButton = styled.button`
   &:hover {
     text-decoration: underline;
   }
+
+  @media (max-width: 1024px) {
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 928px) {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 `;
 
 const ExamHeader = styled.div`
@@ -428,11 +599,51 @@ const ExamHeader = styled.div`
     font-weight: 600;
     color: ${() => theme.primary[500]};
     margin-bottom: 0.5rem;
+
+    @media (max-width: 1024px) {
+      font-size: 1.4rem;
+    }
+
+    @media (max-width: 928px) {
+      font-size: 1.3rem;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 1.3rem;
+      text-align: center;
+    }
   }
 
   p {
     color: #666;
     font-size: 1rem;
+
+    @media (max-width: 1024px) {
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 928px) {
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 928px) {
+    margin-bottom: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    margin-bottom: 1rem;
   }
 `;
 
@@ -447,12 +658,36 @@ const SubmitItem = styled.div`
   border-radius: 0.5rem;
   padding: 1.5rem;
   background: #f9f9f9;
+
+  @media (max-width: 1024px) {
+    padding: 1.3rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const BoxHeader = styled.div`
   margin-bottom: 1rem;
   font-size: 0.9rem;
   color: #666;
+
+  @media (max-width: 1024px) {
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 928px) {
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
 `;
 
 const SubmitContent = styled.div`
@@ -470,6 +705,31 @@ const StudentInfo = styled.div`
     display: flex;
     align-items: center;
   }
+
+  @media (max-width: 1024px) {
+    gap: 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 928px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+
+    & > div {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+
+    & > div {
+      justify-content: flex-start;
+    }
+  }
 `;
 
 const AnswerInfo = styled.div`
@@ -481,5 +741,29 @@ const AnswerInfo = styled.div`
   & > div {
     display: flex;
     align-items: center;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 928px) {
+    font-size: 0.8rem;
+
+    & > div {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+
+    & > div {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+    }
   }
 `;

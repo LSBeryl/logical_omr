@@ -631,11 +631,40 @@ const Wrapper = styled.div`
   padding: 2rem;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 1024px) {
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const Title = styled.div`
   font-size: 2rem;
   font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+
+  @media (max-width: 1024px) {
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+  }
+
+  @media (max-width: 928px) {
+    font-size: 1.6rem;
+    margin-bottom: 0.7rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
 `;
 
 const BoxContainer = styled.div`
@@ -643,7 +672,19 @@ const BoxContainer = styled.div`
   justify-content: center;
   align-items: center;
   flex-grow: 1;
-  margin-top: 5rem;
+  margin-top: 2rem;
+
+  @media (max-width: 1024px) {
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 928px) {
+    margin-top: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 1rem;
+  }
 `;
 
 const Box = styled.div`
@@ -654,16 +695,43 @@ const Box = styled.div`
   flex-direction: column;
   gap: 1rem;
   width: 500px;
+
   @media (max-width: 1024px) {
-    width: 700px;
+    width: 90%;
+    max-width: 600px;
+    padding: 1.5rem;
+    gap: 0.9rem;
   }
+
+  @media (max-width: 928px) {
+    width: 95%;
+    max-width: 500px;
+    padding: 1.2rem;
+    gap: 0.8rem;
+  }
+
   @media (max-width: 768px) {
-    width: 300px;
+    width: 95%;
+    padding: 1rem;
+    gap: 0.8rem;
   }
+
   & > div {
     &:not(:nth-of-type(1)) {
       border-top: 1px solid ${() => theme.gray};
       padding-top: 1rem;
+
+      @media (max-width: 1024px) {
+        padding-top: 0.9rem;
+      }
+
+      @media (max-width: 928px) {
+        padding-top: 0.8rem;
+      }
+
+      @media (max-width: 768px) {
+        padding-top: 0.8rem;
+      }
     }
   }
 `;
@@ -678,6 +746,18 @@ const BoxRow = styled.div`
     font-weight: 500;
     &:nth-of-type(1) {
       font-weight: 600;
+
+      @media (max-width: 1024px) {
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 928px) {
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 0.9rem;
+      }
     }
   }
 
@@ -686,6 +766,15 @@ const BoxRow = styled.div`
       length === "short"
         ? css`
             width: 30%;
+            @media (max-width: 1024px) {
+              width: 40%;
+            }
+            @media (max-width: 928px) {
+              width: 45%;
+            }
+            @media (max-width: 768px) {
+              width: 50%;
+            }
           `
         : null}
     border: 1px solid ${() => theme.gray};
@@ -694,17 +783,57 @@ const BoxRow = styled.div`
     border-radius: 0.25rem;
     font-size: 0.9rem;
     font-weight: 500;
+
+    @media (max-width: 1024px) {
+      padding: 0.55rem 0.7rem;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 928px) {
+      padding: 0.5rem 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+      padding: 0.5rem 0.6rem;
+      font-size: 0.8rem;
+    }
   }
 `;
 
 const SelectiveExistingCon = styled.div`
   display: flex;
   gap: 1rem;
+
+  @media (max-width: 1024px) {
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 928px) {
+    gap: 0.6rem;
+  }
+
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+  }
+
   & > div {
     display: flex;
     gap: 0.2rem;
     align-items: center;
     font-size: 0.9rem;
+
+    @media (max-width: 1024px) {
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 928px) {
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 0.8rem;
+    }
   }
   & input,
   & label {
@@ -720,6 +849,24 @@ const Button = styled.div`
     padding: 0.5rem;
     font-size: 0.8rem;
     cursor: pointer;
+    display: inline-block;
+
+    @media (max-width: 1024px) {
+      padding: 0.45rem 0.7rem;
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 928px) {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.7rem;
+    }
+
+    @media (max-width: 768px) {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.7rem;
+      text-align: center;
+      width: 100%;
+    }
   }
 `;
 
@@ -727,6 +874,23 @@ const SelectiveRange = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+
+  @media (max-width: 1024px) {
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 928px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
   & > input {
     font-size: 1rem;
     width: 30%;
@@ -736,6 +900,24 @@ const SelectiveRange = styled.div`
     border-radius: 0.25rem;
     font-size: 0.9rem;
     font-weight: 500;
+
+    @media (max-width: 1024px) {
+      width: 35%;
+      padding: 0.55rem 0.7rem;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 928px) {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+      width: 100%;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.8rem;
+    }
   }
 `;
 
@@ -743,6 +925,19 @@ const Submit = styled.div`
   display: flex;
   justify-content: center;
   margin-top: 2rem;
+
+  @media (max-width: 1024px) {
+    margin-top: 1.5rem;
+  }
+
+  @media (max-width: 928px) {
+    margin-top: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    margin-top: 1rem;
+  }
+
   & > span {
     border-radius: 0.5rem;
     background: ${() => theme.primary[500]};
@@ -751,5 +946,20 @@ const Submit = styled.div`
     font-size: 1rem;
     cursor: pointer;
     font-weight: 600;
+
+    @media (max-width: 1024px) {
+      padding: 0.9rem 1.8rem;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 928px) {
+      padding: 0.8rem 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      padding: 0.8rem 1.5rem;
+      font-size: 0.9rem;
+    }
   }
 `;

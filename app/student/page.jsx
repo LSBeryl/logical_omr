@@ -331,8 +331,8 @@ function StudentContent() {
 
       {/* 상단 버튼들 */}
       <TopButtons>
-        <AutoFillButton onClick={handleAutoFillClick}>자동 찍기</AutoFillButton>
-        <HomeButton onClick={() => router.push("/")}>홈</HomeButton>
+        {/* <AutoFillButton onClick={handleAutoFillClick}>자동 찍기</AutoFillButton> */}
+        <HomeButton onClick={() => router.push("/")}>홈으로</HomeButton>
       </TopButtons>
 
       {/* 점수 표시 */}
