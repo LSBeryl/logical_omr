@@ -259,6 +259,64 @@ export default function NewExam() {
     alert("모의고사 프리셋이 적용되었습니다!");
   };
 
+  // 테스트 시험 프리셋 함수 (모든 답이 1)
+  const applyTestExamPreset = () => {
+    // 기본 설정
+    setExamName("테스트 시험");
+    setExamNum(30);
+    setHasSelective(true);
+    setSelectiveCount(2);
+    setSelectiveRangeStart("23");
+    setSelectiveRangeEnd("30");
+
+    // 공통 과목 답 (1-22번) - 모든 답이 1
+    const commonAnswers = Array(22).fill("1").join(",");
+    setAnswers(commonAnswers);
+
+    // 공통 과목 배점 (1-22번) - 정확한 배점으로 수정
+    setAnswerScores("2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,3,3,3,3,4,4,4");
+
+    // 공통 과목 문제 유형 (1-22번)
+    const commonTypes = [
+      ...Array(15).fill("객"), // 1-15번 객관식
+      ...Array(7).fill("주"), // 16-22번 주관식
+    ];
+    setAnswerTypesArray(commonTypes);
+    setAnswerTypes(commonTypes.join(","));
+
+    // 선택 과목 답 (23-30번) - 모든 답이 1
+    const selectiveAnswers = Array(8).fill("1").join(",");
+    setSelectiveAnswers(selectiveAnswers);
+
+    // 선택 과목 배점 (23-30번) - 정확한 배점으로 수정
+    setSelectiveScores("2,3,3,3,3,4,4,4");
+
+    // 선택 과목 문제 유형 (23-30번)
+    const selectiveTypes = [
+      ...Array(6).fill("객"), // 23-28번 객관식
+      ...Array(2).fill("주"), // 29-30번 주관식
+    ];
+    setSelectiveAnswerTypesArray(selectiveTypes);
+    setSelectiveTypes(selectiveTypes.join(","));
+
+    // 선택 과목 문제 개수 설정
+    setSelectiveNum(8);
+
+    // 선택 과목 답 설정
+    setSelectiveSubjects([
+      {
+        name: "선택 과목 1",
+        answers: selectiveAnswers,
+      },
+      {
+        name: "선택 과목 2",
+        answers: selectiveAnswers,
+      },
+    ]);
+
+    alert("테스트 시험 프리셋이 적용되었습니다! (모든 답: 1)");
+  };
+
   useEffect(() => {
     setSelectiveRange(`${selectiveRangeStart}-${selectiveRangeEnd}`);
   }, [selectiveRangeStart, selectiveRangeEnd]);
@@ -317,6 +375,7 @@ export default function NewExam() {
             <div>프리셋</div>
             <PresetButton>
               <span onClick={applyMockExamPreset}>모의고사 프리셋 적용</span>
+              <span onClick={applyTestExamPreset}>테스트 시험 프리셋 적용</span>
             </PresetButton>
           </BoxRow>
           <BoxRow length="short">
@@ -959,6 +1018,15 @@ const Submit = styled(Button)`
 `;
 
 const PresetButton = styled(Button)`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
   & > span {
     border-radius: 0.5rem;
     background: #28a745;

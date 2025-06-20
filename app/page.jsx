@@ -16,6 +16,9 @@ export default function Main() {
   const [showSelectiveModal, setShowSelectiveModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [myExams, setMyExams] = useState([]);
+  const [myExamsLoading, setMyExamsLoading] = useState(false);
+  const [showMyExamsModal, setShowMyExamsModal] = useState(false);
   const router = useRouter();
 
   const { user, userData, loading, error, signOut } = useAuth();
@@ -51,6 +54,69 @@ export default function Main() {
     fetchExams();
   }, []);
 
+  // 학생이 로그인했을 때 본 시험 목록 미리 가져오기
+  useEffect(() => {
+    if (user && userData?.role === "student") {
+      fetchMyExams();
+    }
+  }, [user, userData]);
+
+  // 학생이 본 시험 목록 가져오기
+  const fetchMyExams = async () => {
+    if (!user || userData?.role !== "student") return;
+
+    try {
+      setMyExamsLoading(true);
+      console.log("내 시험 목록 가져오기 시작");
+
+      const { data: myExamList, error: myExamError } = await supabase
+        .from("Submit")
+        .select(
+          `
+          id,
+          exam_id,
+          submitted_at,
+          score,
+          Exam (
+            id,
+            name,
+            has_selective
+          )
+        `
+        )
+        .eq("submitter_id", user.id)
+        .order("submitted_at", { ascending: false });
+
+      if (myExamError) {
+        console.error("내 시험 목록 가져오기 실패:", myExamError);
+        setMyExams([]);
+      } else {
+        console.log(
+          "내 시험 목록 가져오기 성공:",
+          myExamList?.length || 0,
+          "개"
+        );
+        setMyExams(myExamList || []);
+      }
+    } catch (error) {
+      console.error("내 시험 목록 조회 중 오류:", error);
+      setMyExams([]);
+    } finally {
+      setMyExamsLoading(false);
+    }
+  };
+
+  // 내 시험 보기 모달 열기
+  const handleMyExamsModal = () => {
+    fetchMyExams();
+    setShowMyExamsModal(true);
+  };
+
+  // 내 시험 보기 모달 닫기
+  const handleCloseMyExamsModal = () => {
+    setShowMyExamsModal(false);
+  };
+
   useEffect(() => {
     if (code.includes("FHWLZJFTNGKR")) {
       router.push("/teacher");
@@ -83,6 +149,11 @@ export default function Main() {
     } else {
       router.push(`/student?examId=${examId}`);
     }
+  };
+
+  // 이미 본 시험인지 확인하는 함수
+  const hasTakenExam = (examId) => {
+    return myExams.some((myExam) => myExam.exam_id === examId);
   };
 
   const handleSelectiveSubmit = () => {
@@ -236,7 +307,18 @@ export default function Main() {
               exams.map((exam) => (
                 <ExamBoxRow key={exam.id}>
                   <div>{exam.name}</div>
-                  <div onClick={() => handleEnterExam(exam.id)}>입장</div>
+                  <div
+                    onClick={() =>
+                      !hasTakenExam(exam.id) && handleEnterExam(exam.id)
+                    }
+                    style={{
+                      cursor: hasTakenExam(exam.id) ? "not-allowed" : "pointer",
+                      opacity: hasTakenExam(exam.id) ? 0.5 : 1,
+                      background: hasTakenExam(exam.id) ? "#ccc" : "#082870",
+                    }}
+                  >
+                    {hasTakenExam(exam.id) ? "완료" : "입장"}
+                  </div>
                 </ExamBoxRow>
               ))
             ) : (
@@ -259,6 +341,11 @@ export default function Main() {
           )}
         </ExamBoxContainer>
         {user && <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>}
+        {userData?.role === "student" && (
+          <MyExamsButton onClick={handleMyExamsModal}>
+            내 시험 보기
+          </MyExamsButton>
+        )}
         {userData?.user_name === "LSBeryl" ||
         userData?.email === "dltjgus8098@naver.com" ? (
           <DebugButton onClick={handleDebug}>디버그 페이지</DebugButton>
@@ -329,6 +416,134 @@ export default function Main() {
                 >
                   입장
                 </SubmitButton>
+              </ModalButtons>
+            </ModalContent>
+          </Modal>
+        </ModalOverlay>
+      )}
+
+      {/* 내 시험 보기 모달 */}
+      {showMyExamsModal && (
+        <ModalOverlay>
+          <Modal>
+            <ModalTitle>내 시험 목록</ModalTitle>
+            <ModalContent>
+              {myExamsLoading ? (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    height: "100px",
+                    color: "#666",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  내 시험 목록을 불러오는 중...
+                </div>
+              ) : myExams.length > 0 ? (
+                <div
+                  style={{
+                    maxHeight: "300px",
+                    overflowY: "auto",
+                    width: "100%",
+                  }}
+                >
+                  {myExams.map((myExam) => (
+                    <div
+                      key={myExam.id}
+                      style={{
+                        padding: "1rem",
+                        borderBottom: "1px solid #eee",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        width: "100%",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: "600", fontSize: "1rem" }}>
+                          {myExam.Exam.name}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.9rem",
+                            color: "#666",
+                            marginTop: "0.3rem",
+                          }}
+                        >
+                          {new Date(myExam.submitted_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(
+                              `/student/detailedexam?examId=${myExam.exam_id}&submitId=${myExam.id}`
+                            );
+                          }}
+                          style={{
+                            padding: "0.3rem 0.8rem",
+                            border: "1px solid #ccc",
+                            borderRadius: "0.3rem",
+                            background: "white",
+                            color: "#666",
+                            fontSize: "0.8rem",
+                            cursor: "pointer",
+                            transition: "background-color 0.2s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#f5f5f5";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "white";
+                          }}
+                        >
+                          상세정보
+                        </button>
+                        <div
+                          style={{
+                            color: "#28a745",
+                            fontSize: "1rem",
+                            fontWeight: "700",
+                            padding: "0.3rem 0.8rem",
+                            background: "#e8f5e8",
+                            borderRadius: "0.3rem",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {myExam.score}점
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100px",
+                    color: "#666",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  아직 본 시험이 없습니다
+                </div>
+              )}
+              <ModalButtons>
+                <CancelButton onClick={handleCloseMyExamsModal}>
+                  닫기
+                </CancelButton>
               </ModalButtons>
             </ModalContent>
           </Modal>
@@ -550,6 +765,21 @@ const TeacherButton = styled.button`
   font-size: 0.8rem;
   font-weight: 500;
   margin-bottom: 1rem;
+  &:hover {
+    background: ${() => theme.primary[600]};
+  }
+`;
+
+const MyExamsButton = styled.button`
+  background: ${() => theme.primary[500]};
+  color: ${() => theme.white};
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
   &:hover {
     background: ${() => theme.primary[600]};
   }
