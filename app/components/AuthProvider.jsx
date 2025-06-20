@@ -130,7 +130,52 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setUserData(null);
       } else if (event === "TOKEN_REFRESHED" && session?.user) {
-        // 토큰 갱신 시에도 세션 유효성 검증
+        // 토큰 갱신 시 새로운 access_token을 User 테이블에 업데이트
+        devLog("AuthProvider: 토큰 갱신 감지, User 테이블 업데이트");
+
+        try {
+          // 현재 User 테이블의 current_session_id 확인
+          const { data: currentUserData, error: userError } = await supabase
+            .from("User")
+            .select("current_session_id")
+            .eq("id", session.user.id)
+            .single();
+
+          if (userError) {
+            devError("AuthProvider: 현재 사용자 데이터 조회 실패:", userError);
+            return;
+          }
+
+          // 테스트용 값이 아닌 경우에만 업데이트
+          if (!currentUserData.current_session_id?.includes("_for_testing")) {
+            const { error: updateError } = await supabase
+              .from("User")
+              .update({
+                current_session_id: session.access_token,
+              })
+              .eq("id", session.user.id);
+
+            if (updateError) {
+              devError(
+                "AuthProvider: 토큰 갱신 후 User 테이블 업데이트 실패:",
+                updateError
+              );
+            } else {
+              devLog("AuthProvider: 토큰 갱신 후 User 테이블 업데이트 완료");
+            }
+          } else {
+            devLog(
+              "AuthProvider: 테스트용 세션 토큰이므로 User 테이블 업데이트 건너뜀"
+            );
+          }
+        } catch (updateErr) {
+          devError(
+            "AuthProvider: 토큰 갱신 후 User 테이블 업데이트 중 오류:",
+            updateErr
+          );
+        }
+
+        // 세션 유효성 검증 (이제 새로운 토큰으로 검증)
         const isValidSession = await validateSession(session, session.user.id);
 
         if (isValidSession) {
@@ -156,7 +201,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // 주기적 세션 점검 (1초마다)
+  // 주기적 세션 점검 (30초마다)
   useEffect(() => {
     if (!user) return; // 로그인된 사용자가 없으면 점검하지 않음
 
@@ -185,6 +230,7 @@ export const AuthProvider = ({ children }) => {
 
         if (userError) {
           devError("AuthProvider: 사용자 데이터 조회 중 오류:", userError);
+          // 에러가 발생해도 로그아웃하지 않고 다음 점검에서 재시도
           return;
         }
 
@@ -203,26 +249,47 @@ export const AuthProvider = ({ children }) => {
           userData.current_session_id === session.access_token;
 
         if (!isValidSession) {
+          // 토큰이 갱신되었을 가능성 확인 (다른 곳에서 로그인한 것이 아닌 경우)
+          // current_session_id가 null이 아니고, 다른 곳에서 로그인한 것이 아니라면 토큰 갱신으로 간주
+          if (
+            userData.current_session_id &&
+            userData.current_session_id !== session.access_token &&
+            // 실제 토큰 갱신인지 확인 (테스트용 값이 아닌 경우)
+            !userData.current_session_id.includes("_for_testing")
+          ) {
+            devLog("AuthProvider: 토큰 갱신 감지, User 테이블 업데이트");
+
+            try {
+              const { error: updateError } = await supabase
+                .from("User")
+                .update({
+                  current_session_id: session.access_token,
+                })
+                .eq("id", session.user.id);
+
+              if (updateError) {
+                devError(
+                  "AuthProvider: 토큰 갱신 후 User 테이블 업데이트 실패:",
+                  updateError
+                );
+              } else {
+                devLog("AuthProvider: 토큰 갱신 후 User 테이블 업데이트 완료");
+                return; // 업데이트 완료 후 다음 점검까지 대기
+              }
+            } catch (updateErr) {
+              devError(
+                "AuthProvider: 토큰 갱신 후 User 테이블 업데이트 중 오류:",
+                updateErr
+              );
+            }
+          }
+
           devLog("AuthProvider: 다른 곳에서 로그인됨, 자동 로그아웃");
 
-          // 기존 세션 삭제
-          try {
-            const response = await fetch("/api/auth/invalidate-session", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                sessionId: userData.current_session_id,
-              }),
-            });
-
-            if (response.ok) {
-              devLog("AuthProvider: 기존 세션 삭제 완료");
-            }
-          } catch (sessionErr) {
-            devLog("AuthProvider: 기존 세션 삭제 중 오류:", sessionErr);
-          }
+          // 기존 세션 삭제 (API 호출 제거, User 테이블에서만 처리)
+          devLog(
+            "AuthProvider: 기존 세션 무효화 완료 (User 테이블에서 처리됨)"
+          );
 
           // 브라우저 스토리지 정리
           try {
@@ -256,7 +323,7 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         devError("AuthProvider: 주기적 세션 점검 중 오류:", err);
       }
-    }, 1000); // 1초마다 점검
+    }, 30000); // 30초마다 점검
 
     return () => {
       clearInterval(sessionCheckInterval);
@@ -296,24 +363,8 @@ export const AuthProvider = ({ children }) => {
       // 세션이 유효하지 않으면 자동으로 로그아웃 처리
       if (!isValid && userData.current_session_id) {
         devLog("AuthProvider: 다른 곳에서 로그인됨, 현재 세션 무효화");
-        try {
-          // 서버 API를 통해 기존 세션 삭제
-          const response = await fetch("/api/auth/invalidate-session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              sessionId: userData.current_session_id,
-            }),
-          });
-
-          if (response.ok) {
-            devLog("AuthProvider: 기존 세션 삭제 완료");
-          }
-        } catch (sessionErr) {
-          devLog("AuthProvider: 기존 세션 삭제 중 오류:", sessionErr);
-        }
+        // User 테이블에서만 처리하므로 API 호출 제거
+        devLog("AuthProvider: 세션 무효화 완료 (User 테이블에서 처리됨)");
       }
 
       return isValid;
@@ -429,6 +480,73 @@ export const AuthProvider = ({ children }) => {
     error,
     signOut,
     refreshUserData: () => user && fetchUserDataBackground(user.id),
+    // 개발 환경에서만 사용할 수 있는 테스트 함수들
+    ...(process.env.NODE_ENV === "development" && {
+      testSimulateTokenExpiry: async () => {
+        devLog("AuthProvider: 토큰 만료 시뮬레이션 시작");
+
+        // User 테이블에서 current_session_id를 무효화
+        if (user?.id) {
+          try {
+            const { error: updateError } = await supabase
+              .from("User")
+              .update({
+                current_session_id: "expired_token_for_testing",
+              })
+              .eq("id", user.id);
+
+            if (updateError) {
+              devError(
+                "AuthProvider: 테스트 토큰 만료 시뮬레이션 실패:",
+                updateError
+              );
+            } else {
+              devLog("AuthProvider: 테스트 토큰 만료 시뮬레이션 완료");
+              alert(
+                "토큰 만료 시뮬레이션이 완료되었습니다. 30초 후 세션 점검이 실행됩니다."
+              );
+            }
+          } catch (updateErr) {
+            devError(
+              "AuthProvider: 테스트 토큰 만료 시뮬레이션 중 오류:",
+              updateErr
+            );
+          }
+        }
+      },
+      testSimulateOtherLogin: async () => {
+        devLog("AuthProvider: 다른 곳에서 로그인 시뮬레이션 시작");
+
+        // User 테이블에서 current_session_id를 다른 값으로 변경
+        if (user?.id) {
+          try {
+            const { error: updateError } = await supabase
+              .from("User")
+              .update({
+                current_session_id: "different_session_token_for_testing",
+              })
+              .eq("id", user.id);
+
+            if (updateError) {
+              devError(
+                "AuthProvider: 다른 곳에서 로그인 시뮬레이션 실패:",
+                updateError
+              );
+            } else {
+              devLog("AuthProvider: 다른 곳에서 로그인 시뮬레이션 완료");
+              alert(
+                "다른 곳에서 로그인 시뮬레이션이 완료되었습니다. 30초 후 세션 점검이 실행됩니다."
+              );
+            }
+          } catch (updateErr) {
+            devError(
+              "AuthProvider: 다른 곳에서 로그인 시뮬레이션 중 오류:",
+              updateErr
+            );
+          }
+        }
+      },
+    }),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
