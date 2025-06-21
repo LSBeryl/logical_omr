@@ -503,6 +503,8 @@ export default function Main() {
                     maxHeight: "300px",
                     overflowY: "auto",
                     width: "100%",
+                    flexDirection: "column",
+                    gap: "1rem",
                   }}
                 >
                   {myExams.map((myExam) => (
