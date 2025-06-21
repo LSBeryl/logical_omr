@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import theme from "../../style/theme";
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import supabase from "../../supbase";
+import supabase from "../../supabase";
 
 function DetailedExamContent() {
   const [userData, setUserData] = useState(null);

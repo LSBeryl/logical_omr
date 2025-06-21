@@ -6,7 +6,7 @@ import { css } from "@emotion/react";
 import theme from "./style/theme";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import supabase from "./supbase";
+import supabase from "./supabase";
 import { useAuth } from "./components/AuthProvider";
 
 export default function Main() {
@@ -29,6 +29,7 @@ export default function Main() {
     signOut,
     testSimulateTokenExpiry,
     testSimulateOtherLogin,
+    checkSessionValidity,
   } = useAuth();
 
   useEffect(() => {
@@ -115,7 +116,20 @@ export default function Main() {
   };
 
   // 내 시험 보기 모달 열기
-  const handleMyExamsModal = () => {
+  const handleMyExamsModal = async () => {
+    console.log("내 시험 보기 버튼 클릭됨");
+
+    // 세션 유효성 검사
+    console.log("세션 유효성 검사 시작...");
+    const isValid = await checkSessionValidity();
+    console.log("세션 유효성 검사 결과:", isValid);
+
+    if (!isValid) {
+      console.log("세션이 무효함 - 내 시험 보기 중단");
+      return;
+    }
+
+    console.log("세션 유효함 - 내 시험 보기 진행");
     fetchMyExams();
     setShowMyExamsModal(true);
   };
@@ -145,11 +159,20 @@ export default function Main() {
     router.push("/");
   };
 
-  const handleDebug = () => {
+  const handleDebug = async () => {
+    // 세션 유효성 검사
+    const isValid = await checkSessionValidity();
+    if (!isValid) return;
+
     router.push("/debug");
   };
 
-  const handleEnterExam = (examId) => {
+  // 시험 입장 전 세션 검사
+  const handleEnterExam = async (examId) => {
+    // 세션 유효성 검사
+    const isValid = await checkSessionValidity();
+    if (!isValid) return;
+
     const exam = exams.find((e) => e.id === examId);
     if (exam && exam.has_selective) {
       setSelectedExam(exam);
@@ -164,8 +187,13 @@ export default function Main() {
     return myExams.some((myExam) => myExam.exam_id === examId);
   };
 
-  const handleSelectiveSubmit = () => {
+  // 선택과목 시험 입장 전 세션 검사
+  const handleSelectiveSubmit = async () => {
     if (selectedSubject) {
+      // 세션 유효성 검사
+      const isValid = await checkSessionValidity();
+      if (!isValid) return;
+
       router.push(
         `/student?examId=${selectedExam.id}&selectiveSubject=${selectedSubject}`
       );
@@ -173,6 +201,15 @@ export default function Main() {
       setSelectedExam(null);
       setSelectedSubject("");
     }
+  };
+
+  // 선생님 페이지 이동 전 세션 검사
+  const handleTeacherPage = async () => {
+    // 세션 유효성 검사
+    const isValid = await checkSessionValidity();
+    if (!isValid) return;
+
+    router.push("/teacher");
   };
 
   if (loading) {
@@ -361,7 +398,7 @@ export default function Main() {
         {(userData?.role === "teacher" ||
           userData?.user_name === "LSBeryl" ||
           userData?.email === "dltjgus8098@naver.com") && (
-          <TeacherButton onClick={() => router.push("/teacher")}>
+          <TeacherButton onClick={handleTeacherPage}>
             선생님 페이지
           </TeacherButton>
         )}

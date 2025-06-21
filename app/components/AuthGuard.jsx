@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import supabase from "../supbase";
+import supabase from "../supabase";
 
 export default function AuthGuard({ children }) {
   const [loading, setLoading] = useState(true);

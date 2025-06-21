@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import theme from "../style/theme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import supabase from "../supbase";
+import supabase from "../supabase";
 import { useAuth } from "../components/AuthProvider";
 
 export default function Login() {
@@ -48,67 +48,26 @@ export default function Login() {
 
       console.log("찾은 사용자:", userData);
 
-      // 2. 기존 세션이 있다면 완전히 무효화
+      // 2. 기존 세션이 있다면 사용자에게 알림
       if (userData.current_session_id) {
-        console.log("기존 세션 발견, 완전 무효화 시도");
+        console.log("기존 세션 발견, 사용자에게 알림");
 
-        // 먼저 User 테이블에서 세션 정보 제거
-        try {
-          const { error: clearError } = await supabase
-            .from("User")
-            .update({
-              current_session_id: null,
-              last_logout_at: new Date().toISOString(),
-            })
-            .eq("id", userData.id);
-
-          if (clearError) {
-            console.log("기존 세션 정보 제거 실패:", clearError);
-          } else {
-            console.log("기존 세션 정보 제거 완료");
-          }
-        } catch (clearErr) {
-          console.log("기존 세션 정보 제거 중 오류:", clearErr);
-        }
-
-        // 서버 API를 통해 기존 세션 삭제 시도
-        try {
-          const response = await fetch("/api/auth/invalidate-session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              sessionId: userData.current_session_id,
-            }),
-          });
-
-          if (response.ok) {
-            console.log("기존 세션 삭제 완료");
-          } else {
-            console.log("기존 세션 삭제 실패 (무시 가능)");
-          }
-        } catch (sessionErr) {
-          console.log("기존 세션 삭제 중 오류 (무시 가능):", sessionErr);
-        }
-      }
-
-      // 3. 현재 브라우저의 세션도 로그아웃 (혹시 있을 경우)
-      try {
-        const { error: signOutError } = await supabase.auth.signOut();
-        if (signOutError) {
-          console.log("현재 세션 로그아웃 실패 (무시 가능):", signOutError);
-        } else {
-          console.log("현재 세션 로그아웃 완료");
-        }
-      } catch (currentSessionErr) {
-        console.log(
-          "현재 세션 로그아웃 중 오류 (무시 가능):",
-          currentSessionErr
+        // 사용자에게 중복 로그인 알림
+        const confirmLogin = confirm(
+          "이미 로그인되어있는 계정입니다.\n" +
+            "지금 로그인하면 다른 세션이 종료됩니다.\n" +
+            "계속하시겠습니까?"
         );
+
+        if (!confirmLogin) {
+          setLoading(false);
+          return;
+        }
+
+        console.log("사용자가 중복 로그인을 확인함");
       }
 
-      // 4. 새로운 로그인 시도
+      // 3. 새로운 로그인 시도
       const { data, error } = await supabase.auth.signInWithPassword({
         email: userData.email,
         password,
@@ -120,29 +79,15 @@ export default function Login() {
       } else {
         console.log("로그인 성공:", data);
 
-        // 5. 로그인 성공 시 현재 세션 정보 업데이트
-        const currentSession = data.session;
-        if (currentSession) {
-          console.log("세션 정보 업데이트 시작");
-          const { error: updateError } = await supabase
-            .from("User")
-            .update({
-              current_session_id: currentSession.access_token,
-              last_login_at: new Date().toISOString(),
-            })
-            .eq("id", userData.id);
-
-          if (updateError) {
-            console.error("세션 정보 업데이트 실패:", updateError);
-          } else {
-            console.log("세션 정보 업데이트 완료");
-          }
-        } else {
-          console.log("세션 정보가 없음");
+        // 4. 로그인 성공 후 사용자 데이터 새로고침
+        // AuthProvider에서 자동으로 새 세션 ID를 발급하고 저장함
+        try {
+          await refreshUserData();
+        } catch (refreshError) {
+          console.warn("사용자 데이터 새로고침 실패:", refreshError);
         }
 
-        // 로그인 성공 후 사용자 데이터 새로고침
-        await refreshUserData();
+        // 홈으로 이동
         router.push("/");
       }
     } catch (error) {
