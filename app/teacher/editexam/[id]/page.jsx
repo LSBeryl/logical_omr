@@ -6,7 +6,7 @@ import theme from "../../../style/theme";
 import { css } from "@emotion/react";
 import { useEffect, useState, Fragment } from "react";
 import { useRouter, useParams } from "next/navigation";
-import supabase from "../../../supbase";
+import supabase from "../../../supabase";
 import TeacherNewExamModal from "../../../components/TeacherNewExamModal";
 
 export default function EditExam() {

@@ -16,6 +16,8 @@ function StudentContent() {
   const [graded, setGraded] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [gradedAnswers, setGradedAnswers] = useState({});
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [submittedAnswers, setSubmittedAnswers] = useState({});
   const router = useRouter();
   const searchParams = useSearchParams();
   const examId = searchParams.get("examId");
@@ -37,6 +39,44 @@ function StudentContent() {
             .single();
 
           setUserData(userInfo);
+
+          // 이미 제출한 시험이 있는지 확인
+          if (examId) {
+            const { data: existingSubmit } = await supabase
+              .from("Submit")
+              .select("*")
+              .eq("exam_id", examId)
+              .eq("submitter_id", user.id)
+              .single();
+
+            if (existingSubmit) {
+              console.log("이미 제출한 시험 발견:", existingSubmit);
+              setAlreadySubmitted(true);
+
+              // 제출된 답안 파싱
+              const submittedAnswersObj = {};
+              if (existingSubmit.submitted_answer) {
+                const answers = existingSubmit.submitted_answer.split(",");
+                answers.forEach((answer, index) => {
+                  if (answer && answer !== "null") {
+                    submittedAnswersObj[index + 1] = parseInt(answer);
+                  }
+                });
+                setSubmittedAnswers(submittedAnswersObj);
+              }
+
+              // 채점 결과 설정
+              if (existingSubmit.score !== null) {
+                setScore({
+                  correct: existingSubmit.correct_count || 0,
+                  total: examData?.question_num || 0,
+                  earnedScore: existingSubmit.score,
+                  totalScore: existingSubmit.score, // 실제 총점은 나중에 계산
+                });
+                setGraded(true);
+              }
+            }
+          }
         }
 
         // 시험 정보 가져오기
@@ -61,6 +101,214 @@ function StudentContent() {
 
   if (loading) {
     return <div>로딩 중...</div>;
+  }
+
+  // 이미 제출한 경우 경고 메시지 표시
+  if (alreadySubmitted) {
+    return (
+      <Wrapper>
+        <Title>
+          <div>현재 응시 시험명 : </div>
+          <div>{examData?.name || "로딩 중..."}</div>
+        </Title>
+
+        <TopButtons>
+          <HomeButton onClick={() => router.push("/")}>홈으로</HomeButton>
+        </TopButtons>
+
+        <AlreadySubmittedMessage>
+          <h2>이미 제출한 시험입니다</h2>
+          <p>한 아이디는 한 시험에 하나의 제출만 가능합니다.</p>
+          <p>제출된 답안을 확인하거나 수정할 수 없습니다.</p>
+        </AlreadySubmittedMessage>
+
+        <UserInfo>
+          <div>
+            응시자(닉네임) : {userData?.name || "알 수 없음"}(
+            {userData?.user_name || "알 수 없음"})
+          </div>
+          {userData?.school && (
+            <>
+              <div>학교 : {userData.school}</div>
+              {userData?.grade && (
+                <>
+                  <div>학년 : {userData.grade}학년</div>
+                </>
+              )}
+            </>
+          )}
+          {selectiveSubject && (
+            <div>
+              선택 과목 : {selectiveSubject.replace("selective_", "선택 과목 ")}
+            </div>
+          )}
+        </UserInfo>
+
+        {/* 제출된 답안 표시 (읽기 전용) */}
+        <OMR>
+          <OMRHead>
+            <div>
+              <div>문번</div>
+            </div>
+            <div>
+              <div>
+                <span>답</span>
+                <span>란</span>
+              </div>
+            </div>
+          </OMRHead>
+          {examData &&
+            Array.from({ length: examData.question_num }).map((_, i) => {
+              const questionNumber = i + 1;
+              const submittedAnswer = submittedAnswers[questionNumber];
+
+              // 문제 유형 확인
+              let answerType = "객"; // 기본값
+              if (examData.has_selective && examData.selective_range) {
+                const [start, end] = examData.selective_range
+                  .split("-")
+                  .map(Number);
+                if (questionNumber >= start && questionNumber <= end) {
+                  // 선택 과목 범위의 문제
+                  const selectiveIndex = questionNumber - start;
+                  answerType =
+                    examData.selective_types?.split(",")[selectiveIndex] ||
+                    "객";
+                } else {
+                  // 공통 과목 범위의 문제
+                  answerType = examData.answer_types?.split(",")[i] || "객";
+                }
+              } else {
+                // 선택 과목이 없는 경우
+                answerType = examData.answer_types?.split(",")[i] || "객";
+              }
+
+              return (
+                <OMRRow key={i}>
+                  <div>
+                    <div>{questionNumber}</div>
+                  </div>
+                  <div>
+                    {answerType === "객" ? (
+                      // 객관식
+                      <div>
+                        <div
+                          style={{
+                            backgroundColor:
+                              submittedAnswer === 1
+                                ? theme.black
+                                : "transparent",
+                            border:
+                              submittedAnswer === 1
+                                ? `1px solid ${theme.black}`
+                                : `1px solid ${theme.primary[300]}`,
+                            color:
+                              submittedAnswer === 1 ? theme.white : theme.black,
+                          }}
+                        >
+                          1
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor:
+                              submittedAnswer === 2
+                                ? theme.black
+                                : "transparent",
+                            border:
+                              submittedAnswer === 2
+                                ? `1px solid ${theme.black}`
+                                : `1px solid ${theme.primary[300]}`,
+                            color:
+                              submittedAnswer === 2 ? theme.white : theme.black,
+                          }}
+                        >
+                          2
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor:
+                              submittedAnswer === 3
+                                ? theme.black
+                                : "transparent",
+                            border:
+                              submittedAnswer === 3
+                                ? `1px solid ${theme.black}`
+                                : `1px solid ${theme.primary[300]}`,
+                            color:
+                              submittedAnswer === 3 ? theme.white : theme.black,
+                          }}
+                        >
+                          3
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor:
+                              submittedAnswer === 4
+                                ? theme.black
+                                : "transparent",
+                            border:
+                              submittedAnswer === 4
+                                ? `1px solid ${theme.black}`
+                                : `1px solid ${theme.primary[300]}`,
+                            color:
+                              submittedAnswer === 4 ? theme.white : theme.black,
+                          }}
+                        >
+                          4
+                        </div>
+                        <div
+                          style={{
+                            backgroundColor:
+                              submittedAnswer === 5
+                                ? theme.black
+                                : "transparent",
+                            border:
+                              submittedAnswer === 5
+                                ? `1px solid ${theme.black}`
+                                : `1px solid ${theme.primary[300]}`,
+                            color:
+                              submittedAnswer === 5 ? theme.white : theme.black,
+                          }}
+                        >
+                          5
+                        </div>
+                      </div>
+                    ) : (
+                      // 주관식
+                      <input
+                        type="number"
+                        value={submittedAnswer || ""}
+                        placeholder="주관식 답 입력"
+                        disabled
+                        style={{
+                          opacity: 0.7,
+                          cursor: "not-allowed",
+                          backgroundColor: "#f5f5f5",
+                        }}
+                      />
+                    )}
+                  </div>
+                </OMRRow>
+              );
+            })}
+        </OMR>
+
+        {graded && (
+          <ScoreDisplay>
+            <div>
+              <strong>
+                맞은 문제: ({score.correct} / {score.total})
+              </strong>
+            </div>
+            <div>
+              <strong>
+                점수: ({score.earnedScore} / {score.totalScore})
+              </strong>
+            </div>
+          </ScoreDisplay>
+        )}
+      </Wrapper>
+    );
   }
 
   const handleInputChange = (e) => {
@@ -140,6 +388,16 @@ function StudentContent() {
     console.log("원본 answers 객체:", answers);
 
     try {
+      // 현재 사용자 ID 가져오기
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
       // 선택한 선택과목 번호 계산
       let selectedSelectiveNum = null;
       if (selectiveSubject) {
@@ -163,6 +421,7 @@ function StudentContent() {
       // Submit 테이블에 답안 저장
       const { data, error } = await supabase.from("Submit").insert({
         exam_id: examId,
+        submitter_id: user.id, // 제출자 ID 추가
         submitted_answer: allAnswers.join(","), // 콤마로 구분하여 저장
         selected_selective_num: selectedSelectiveNum,
         score: gradingResult.score.earnedScore,
@@ -179,6 +438,8 @@ function StudentContent() {
       setGradedAnswers(gradingResult.gradedAnswers);
       setScore(gradingResult.score);
       setGraded(true);
+      setAlreadySubmitted(true); // 제출 완료 상태로 설정
+      setSubmittedAnswers(answers); // 제출된 답안 저장
       setShowSubmitModal(false);
 
       console.log("제출된 답안:", data);
@@ -270,6 +531,10 @@ function StudentContent() {
   };
 
   const handleSubmitClick = () => {
+    if (graded) {
+      alert("이미 제출된 시험입니다.");
+      return;
+    }
     setShowSubmitModal(true);
   };
 
@@ -430,7 +695,11 @@ function StudentContent() {
                     // 객관식
                     <div>
                       <div
-                        onClick={() => handleAnswerChange(questionNumber, 1)}
+                        onClick={
+                          graded
+                            ? null
+                            : () => handleAnswerChange(questionNumber, 1)
+                        }
                         style={{
                           backgroundColor:
                             answers[questionNumber] === 1
@@ -440,12 +709,18 @@ function StudentContent() {
                             answers[questionNumber] === 1
                               ? `1px solid ${theme.black}`
                               : `1px solid ${theme.primary[300]}`,
+                          cursor: graded ? "not-allowed" : "pointer",
+                          opacity: graded ? 0.7 : 1,
                         }}
                       >
                         1
                       </div>
                       <div
-                        onClick={() => handleAnswerChange(questionNumber, 2)}
+                        onClick={
+                          graded
+                            ? null
+                            : () => handleAnswerChange(questionNumber, 2)
+                        }
                         style={{
                           backgroundColor:
                             answers[questionNumber] === 2
@@ -455,12 +730,18 @@ function StudentContent() {
                             answers[questionNumber] === 2
                               ? `1px solid ${theme.black}`
                               : `1px solid ${theme.primary[300]}`,
+                          cursor: graded ? "not-allowed" : "pointer",
+                          opacity: graded ? 0.7 : 1,
                         }}
                       >
                         2
                       </div>
                       <div
-                        onClick={() => handleAnswerChange(questionNumber, 3)}
+                        onClick={
+                          graded
+                            ? null
+                            : () => handleAnswerChange(questionNumber, 3)
+                        }
                         style={{
                           backgroundColor:
                             answers[questionNumber] === 3
@@ -470,12 +751,18 @@ function StudentContent() {
                             answers[questionNumber] === 3
                               ? `1px solid ${theme.black}`
                               : `1px solid ${theme.primary[300]}`,
+                          cursor: graded ? "not-allowed" : "pointer",
+                          opacity: graded ? 0.7 : 1,
                         }}
                       >
                         3
                       </div>
                       <div
-                        onClick={() => handleAnswerChange(questionNumber, 4)}
+                        onClick={
+                          graded
+                            ? null
+                            : () => handleAnswerChange(questionNumber, 4)
+                        }
                         style={{
                           backgroundColor:
                             answers[questionNumber] === 4
@@ -485,12 +772,18 @@ function StudentContent() {
                             answers[questionNumber] === 4
                               ? `1px solid ${theme.black}`
                               : `1px solid ${theme.primary[300]}`,
+                          cursor: graded ? "not-allowed" : "pointer",
+                          opacity: graded ? 0.7 : 1,
                         }}
                       >
                         4
                       </div>
                       <div
-                        onClick={() => handleAnswerChange(questionNumber, 5)}
+                        onClick={
+                          graded
+                            ? null
+                            : () => handleAnswerChange(questionNumber, 5)
+                        }
                         style={{
                           backgroundColor:
                             answers[questionNumber] === 5
@@ -500,6 +793,8 @@ function StudentContent() {
                             answers[questionNumber] === 5
                               ? `1px solid ${theme.black}`
                               : `1px solid ${theme.primary[300]}`,
+                          cursor: graded ? "not-allowed" : "pointer",
+                          opacity: graded ? 0.7 : 1,
                         }}
                       >
                         5
@@ -515,13 +810,20 @@ function StudentContent() {
                       step={1}
                       value={answers[questionNumber] || ""}
                       onChange={(e) => {
-                        handleInputChange(e);
-                        handleAnswerChange(
-                          questionNumber,
-                          parseInt(e.target.value) || 0
-                        );
+                        if (!graded) {
+                          handleInputChange(e);
+                          handleAnswerChange(
+                            questionNumber,
+                            parseInt(e.target.value) || 0
+                          );
+                        }
                       }}
                       placeholder="주관식 답 입력"
+                      disabled={graded}
+                      style={{
+                        opacity: graded ? 0.7 : 1,
+                        cursor: graded ? "not-allowed" : "text",
+                      }}
                     />
                   )}
                 </div>
@@ -529,7 +831,17 @@ function StudentContent() {
             );
           })}
       </OMR>
-      <SubmitButton onClick={handleSubmitClick}>제출</SubmitButton>
+      <SubmitButton
+        onClick={graded ? null : handleSubmitClick}
+        disabled={graded}
+        style={{
+          backgroundColor: graded ? theme.gray : theme.primary[500],
+          cursor: graded ? "not-allowed" : "pointer",
+          opacity: graded ? 0.7 : 1,
+        }}
+      >
+        {graded ? "이미 제출됨" : "제출"}
+      </SubmitButton>
 
       {/* 제출 확인 모달 */}
       {showSubmitModal && (
@@ -872,6 +1184,23 @@ const TopButtons = styled.div`
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: 1px solid ${() => theme.gray};
+`;
+
+const AlreadySubmittedMessage = styled.div`
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid ${() => theme.primary[500]};
+  background-color: ${() => theme.primary[100]};
+  text-align: center;
+  margin-bottom: 1rem;
+
+  & h2 {
+    margin-bottom: 0.5rem;
+  }
+
+  & p {
+    margin: 0.25rem 0;
+  }
 `;
 
 export default function Student() {

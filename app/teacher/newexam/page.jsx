@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import theme from "../../style/theme";
 import { css } from "@emotion/react";
 import { useEffect, useState, Fragment } from "react";
-import supabase from "../../supbase";
+import supabase from "../../supabase";
 import TeacherNewExamModal from "../../components/TeacherNewExamModal";
 import ExamSummaryModal from "../../components/ExamSummaryModal";
 

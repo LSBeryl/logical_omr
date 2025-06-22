@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import theme from "../../style/theme";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import supabase from "../../supbase";
+import supabase from "../../supabase";
 
 export default function ExamHistory() {
   const [exams, setExams] = useState([]);

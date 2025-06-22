@@ -4,7 +4,7 @@
 import styled from "@emotion/styled";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import supabase from "../supbase";
+import supabase from "../supabase";
 import axios from "axios";
 
 export default function Debug() {
