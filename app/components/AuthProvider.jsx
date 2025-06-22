@@ -138,7 +138,6 @@ export function AuthProvider({ children }) {
         .from("User")
         .update({
           current_session_id: newSessionId,
-          last_login_at: new Date().toISOString(),
         })
         .eq("id", userId);
 
@@ -314,14 +313,110 @@ export function AuthProvider({ children }) {
     try {
       console.log("로그아웃 시작");
 
-      // User 테이블에서 세션 정보 제거
+      // 1. 로그아웃 시에도 현재 세션이 유효한지 검증
+      const localSessionId = getLocalSessionId();
+      console.log("로그아웃 시 로컬 세션 ID:", localSessionId);
+
+      if (user && localSessionId) {
+        try {
+          // 타임아웃 설정 (5초)
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(
+              () => reject(new Error("로그아웃 시 DB 세션 조회 타임아웃")),
+              5000
+            );
+          });
+
+          const dbPromise = supabase
+            .from("User")
+            .select("current_session_id")
+            .eq("id", user.id)
+            .single();
+
+          const { data: currentUserData, error: dbError } = await Promise.race([
+            dbPromise,
+            timeoutPromise,
+          ]);
+
+          if (!dbError && currentUserData) {
+            console.log(
+              "로그아웃 시 DB 세션 ID:",
+              currentUserData.current_session_id
+            );
+
+            // 2. 세션 ID가 일치하는 경우에만 Supabase 로그아웃 실행
+            // (중복 로그인으로 인한 세션 불일치 시에는 Supabase 로그아웃 하지 않음)
+            if (currentUserData.current_session_id === localSessionId) {
+              console.log("세션 일치 - Supabase 로그아웃 실행");
+
+              // Supabase 로그아웃
+              try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                  console.log("Supabase 로그아웃 실패:", error.message);
+                } else {
+                  console.log("Supabase 로그아웃 완료");
+                }
+              } catch (authError) {
+                console.log("Supabase 로그아웃 중 오류:", authError);
+              }
+            } else {
+              console.log(
+                "세션 불일치 - Supabase 로그아웃 건너뛰기 (중복 로그인 상황)"
+              );
+            }
+          } else {
+            console.log("DB 조회 실패 - Supabase 로그아웃 실행");
+            // DB 조회 실패 시에는 Supabase 로그아웃 실행
+            try {
+              const { error } = await supabase.auth.signOut();
+              if (error) {
+                console.log("Supabase 로그아웃 실패:", error.message);
+              } else {
+                console.log("Supabase 로그아웃 완료");
+              }
+            } catch (authError) {
+              console.log("Supabase 로그아웃 중 오류:", authError);
+            }
+          }
+        } catch (dbError) {
+          console.error("로그아웃 시 DB 조회 중 예외 발생:", dbError);
+          // DB 오류 시에도 Supabase 로그아웃 실행
+          try {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+              console.log("Supabase 로그아웃 실패:", error.message);
+            } else {
+              console.log("Supabase 로그아웃 완료");
+            }
+          } catch (authError) {
+            console.log("Supabase 로그아웃 중 오류:", authError);
+          }
+        }
+      } else {
+        console.log(
+          "사용자 정보 또는 로컬 세션 ID 없음 - Supabase 로그아웃 실행"
+        );
+        // 사용자 정보가 없거나 로컬 세션 ID가 없는 경우 Supabase 로그아웃 실행
+        try {
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            console.log("Supabase 로그아웃 실패:", error.message);
+          } else {
+            console.log("Supabase 로그아웃 완료");
+          }
+        } catch (authError) {
+          console.log("Supabase 로그아웃 중 오류:", authError);
+        }
+      }
+
+      // 3. User 테이블 세션 데이터 NULL로 설정
       if (user) {
         try {
           await supabase
             .from("User")
             .update({
               current_session_id: null,
-              last_logout_at: new Date().toISOString(),
             })
             .eq("id", user.id);
           console.log("User 테이블 세션 정보 제거 완료");
@@ -334,19 +429,6 @@ export function AuthProvider({ children }) {
       // 로컬 스토리지에서 세션 ID 제거
       setLocalSessionId(null);
       console.log("로컬 세션 ID 제거 완료");
-
-      // Supabase 로그아웃
-      try {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.log("Supabase 로그아웃 실패:", error.message);
-        } else {
-          console.log("Supabase 로그아웃 완료");
-        }
-      } catch (authError) {
-        console.log("Supabase 로그아웃 중 오류:", authError);
-        // Auth 오류가 있어도 계속 진행
-      }
 
       // 상태 초기화 (오류가 있어도 반드시 실행)
       setUser(null);
