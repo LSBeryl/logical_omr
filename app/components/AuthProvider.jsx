@@ -5,29 +5,6 @@ import supabase from "../supabase";
 
 const AuthContext = createContext();
 
-// 랜덤 세션 ID 생성 함수
-const generateSessionId = () => {
-  return (
-    "session_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now()
-  );
-};
-
-// 로컬 스토리지에서 세션 ID 가져오기
-const getLocalSessionId = () => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("localSessionId");
-};
-
-// 로컬 스토리지에 세션 ID 저장
-const setLocalSessionId = (sessionId) => {
-  if (typeof window === "undefined") return;
-  if (sessionId) {
-    localStorage.setItem("localSessionId", sessionId);
-  } else {
-    localStorage.removeItem("localSessionId");
-  }
-};
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -113,17 +90,34 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("인증 상태 변경:", event, session);
+      console.log("인증 상태 변경:", event, session?.user?.id);
 
       if (event === "SIGNED_IN" && session) {
+        console.log("로그인 감지:", session.user.id);
         setUser(session.user);
 
         // 사용자 데이터 가져오기
         const userData = await fetchUserData(session.user.id);
         setUserData(userData);
       } else if (event === "SIGNED_OUT") {
+        console.log("로그아웃 감지");
         setUser(null);
         setUserData(null);
+        setError(null);
+      } else if (event === "TOKEN_REFRESHED") {
+        console.log("토큰 갱신 감지");
+        // 토큰이 갱신되면 사용자 데이터도 새로고침
+        if (session?.user) {
+          const userData = await fetchUserData(session.user.id);
+          setUserData(userData);
+        }
+      } else if (event === "USER_UPDATED") {
+        console.log("사용자 정보 업데이트 감지");
+        if (session?.user) {
+          setUser(session.user);
+          const userData = await fetchUserData(session.user.id);
+          setUserData(userData);
+        }
       }
 
       setLoading(false);
@@ -138,30 +132,21 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     try {
       console.log("로그아웃 시작");
-
-      // Supabase 로그아웃
       const { error } = await supabase.auth.signOut();
+
       if (error) {
-        console.log("Supabase 로그아웃 실패:", error.message);
+        console.error("로그아웃 실패:", error);
         setError(error.message);
       } else {
-        console.log("Supabase 로그아웃 완료");
+        console.log("로그아웃 완료");
+        setUser(null);
+        setUserData(null);
+        setError(null);
       }
-
-      // 상태 초기화
-      setUser(null);
-      setUserData(null);
-      setError(null);
-      setLoading(false);
-
-      console.log("로그아웃 완료");
     } catch (error) {
       console.error("로그아웃 중 오류:", error);
       setError(error.message);
-
-      // 오류가 발생해도 상태는 초기화
-      setUser(null);
-      setUserData(null);
+    } finally {
       setLoading(false);
     }
   };

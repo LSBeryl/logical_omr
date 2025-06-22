@@ -21,15 +21,7 @@ export default function Main() {
   const [showMyExamsModal, setShowMyExamsModal] = useState(false);
   const router = useRouter();
 
-  const {
-    user,
-    userData,
-    loading,
-    error,
-    signOut,
-    testSimulateTokenExpiry,
-    testSimulateOtherLogin,
-  } = useAuth();
+  const { user, userData, loading, error, signOut } = useAuth();
 
   useEffect(() => {
     // 시험 목록 가져오기 - 최적화
@@ -142,8 +134,14 @@ export default function Main() {
   };
 
   const handleLogout = async () => {
-    await signOut();
-    router.push("/");
+    try {
+      console.log("페이지 로그아웃 시작");
+      await signOut();
+      router.push("/");
+    } catch (error) {
+      console.error("페이지 로그아웃 중 오류:", error);
+      router.push("/");
+    }
   };
 
   const handleDebug = async () => {
@@ -392,54 +390,6 @@ export default function Main() {
             <div>UserData: {userData ? userData.user_name : "없음"}</div>
             <div>Loading: {loading ? "예" : "아니오"}</div>
             {error && <div>Error: {error}</div>}
-            {user && (
-              <div
-                style={{
-                  marginTop: "10px",
-                  borderTop: "1px solid #555",
-                  paddingTop: "10px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "10px",
-                    color: "#aaa",
-                    marginBottom: "5px",
-                  }}
-                >
-                  테스트 도구:
-                </div>
-                <button
-                  onClick={testSimulateTokenExpiry}
-                  style={{
-                    background: "#e74c3c",
-                    color: "white",
-                    border: "none",
-                    padding: "3px 6px",
-                    borderRadius: "3px",
-                    fontSize: "10px",
-                    cursor: "pointer",
-                    marginRight: "5px",
-                  }}
-                >
-                  토큰 만료 시뮬레이션
-                </button>
-                <button
-                  onClick={testSimulateOtherLogin}
-                  style={{
-                    background: "#f39c12",
-                    color: "white",
-                    border: "none",
-                    padding: "3px 6px",
-                    borderRadius: "3px",
-                    fontSize: "10px",
-                    cursor: "pointer",
-                  }}
-                >
-                  다른 곳 로그인 시뮬레이션
-                </button>
-              </div>
-            )}
           </div>
         )}
       </MainContainer>

@@ -29,7 +29,7 @@ export default function Login() {
       // 1. 사용자명으로 User 테이블에서 사용자 정보 찾기
       const { data: userData, error: userError } = await supabase
         .from("User")
-        .select("email, user_name, id, current_session_id")
+        .select("email, user_name, id")
         .eq("user_name", trimmedUserName)
         .single();
 
@@ -48,26 +48,6 @@ export default function Login() {
 
       console.log("찾은 사용자:", userData);
 
-      // 2. 기존 세션이 있다면 사용자에게 알림
-      if (userData.current_session_id) {
-        console.log("기존 세션 발견, 사용자에게 알림");
-
-        // 사용자에게 중복 로그인 알림
-        const confirmLogin = confirm(
-          "이미 로그인되어있는 계정입니다.\n" +
-            "지금 로그인하면 다른 세션이 종료됩니다.\n" +
-            "계속하시겠습니까?"
-        );
-
-        if (!confirmLogin) {
-          setLoading(false);
-          return;
-        }
-
-        console.log("사용자가 중복 로그인을 확인함");
-      }
-
-      // 3. 새로운 로그인 시도
       const { data, error } = await supabase.auth.signInWithPassword({
         email: userData.email,
         password,
@@ -79,8 +59,6 @@ export default function Login() {
       } else {
         console.log("로그인 성공:", data);
 
-        // 4. 로그인 성공 후 사용자 데이터 새로고침
-        // AuthProvider에서 자동으로 새 세션 ID를 발급하고 저장함
         try {
           await refreshUserData();
         } catch (refreshError) {
