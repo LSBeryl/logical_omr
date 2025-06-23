@@ -23,11 +23,11 @@ export function AuthProvider({ children }) {
         return userDataCache.get(userId);
       }
 
-      // 타임아웃 설정 (2초로 단축)
+      // 타임아웃 설정 (1초로 단축)
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(
           () => reject(new Error("사용자 데이터 조회 타임아웃")),
-          2000
+          1000
         );
       });
 
