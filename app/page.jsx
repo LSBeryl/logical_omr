@@ -216,16 +216,6 @@ export default function Main() {
 
   return (
     <Wrapper>
-      <TopBar>
-        {user && userData && (
-          <UserInfo>
-            현재 로그인 계정 : {userData.name}
-            {userData.user_name && (
-              <UserNameSpan>({userData.user_name})</UserNameSpan>
-            )}
-          </UserInfo>
-        )}
-      </TopBar>
       <Title>
         <div>
           <img src="/icon.png" alt="" />
@@ -242,6 +232,16 @@ export default function Main() {
           </OMRSpan>
         </div>
       </Title>
+      <TopBar>
+        {user && userData && (
+          <UserInfo>
+            현재 로그인 계정 : {userData.name}
+            {userData.user_name && (
+              <UserNameSpan>({userData.user_name})</UserNameSpan>
+            )}
+          </UserInfo>
+        )}
+      </TopBar>
       <MainContainer>
         <ExamBoxTitle $isLoggedIn={!!user}>
           <div>시험 목록</div>
@@ -424,20 +424,10 @@ const Wrapper = styled.div`
 `;
 
 const TopBar = styled.div`
-  width: 100vw;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 0.5rem 2rem 0 0;
   min-height: 2rem;
-
-  @media (max-width: 1024px) {
-    padding: 0.5rem 1.5rem 0 0;
-  }
-
-  @media (max-width: 768px) {
-    padding: 0.5rem 1rem 0 0;
-  }
 `;
 
 const UserInfo = styled.div`
@@ -558,12 +548,6 @@ const ExamBoxRow = styled.div`
     font-size: 0.9rem;
     font-weight: 600;
 
-    &:nth-of-type(1) {
-      @media (max-width: 768px) {
-        width: 80%;
-      }
-    }
-
     &:nth-of-type(2) {
       border-radius: 0.5rem;
       font-size: 0.8rem;
@@ -598,23 +582,23 @@ const ExamTitle = styled.div`
   font-size: 0.9rem;
   font-weight: 600;
 
-  @media (max-width: 768px) {
-    width: 80%;
+  @media (max-width: 1024px) {
+    width: 70%;
   }
 `;
 
 const ExamButton = styled.button`
-  background: ${(props) => (props.$isCompleted ? "#ccc" : theme.primary[500])};
+  background: ${(props) => (props.$isCompleted ? "#ddd" : theme.primary[500])};
   color: ${(props) => (props.$isCompleted ? "#666" : theme.white)};
   padding: 0.3rem 0.5rem;
   border: none;
   border-radius: 0.5rem;
-  cursor: pointer;
+  cursor: ${(props) => (props.$isCompleted ? "not-allowed" : "pointer")};
   margin-left: 0.5rem;
 
   &:hover {
     background: ${(props) =>
-      props.$isCompleted ? "#f5f5f5" : theme.primary[600]};
+      props.$isCompleted ? "#eee" : theme.primary[600]};
   }
 
   @media (max-width: 768px) {
