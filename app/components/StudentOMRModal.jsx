@@ -182,7 +182,7 @@ export default function StudentOMRModal({ open, onClose, submit, student }) {
                             outline: "none",
                             textAlign: "center",
                             fontSize: "0.9rem",
-                            padding: "0.5rem",
+                            padding: "0.15rem",
                             borderRadius: "0.25rem",
                           }}
                         />
@@ -217,6 +217,17 @@ const Overlay = styled.div`
 `;
 
 const Modal = styled.div`
+  @font-face {
+    font-family: "ChosunGu";
+    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff")
+      format("woff");
+    font-weight: normal;
+    font-style: normal;
+  }
+  &,
+  & * {
+    font-family: "ChosunGu";
+  }
   background: white;
   border-radius: 0.5rem;
   max-width: 90vw;
@@ -296,25 +307,9 @@ const OMRContainer = styled.div`
 `;
 
 const OMR = styled.div`
-  @font-face {
-    font-family: "ChosunGu";
-    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff")
-      format("woff");
-    font-weight: normal;
-    font-style: normal;
-  }
-  &,
-  & * {
-    font-family: "ChosunGu";
-  }
   border: 2px solid ${() => theme.primary[500]};
   border-radius: 0.5rem;
   width: 200px;
-
-  @media (max-width: 768px) {
-    width: 180px;
-    border-width: 1px;
-  }
 `;
 
 const OMRHead = styled.div`
@@ -355,15 +350,6 @@ const OMRHead = styled.div`
       background-color: ${() => theme.primary[100]};
     }
   }
-
-  @media (max-width: 768px) {
-    & > div {
-      & > div {
-        padding: 0.3rem;
-        font-size: 0.8rem;
-      }
-    }
-  }
 `;
 
 const OMRRow = styled.div`
@@ -393,12 +379,11 @@ const OMRRow = styled.div`
       width: 55px;
       border-right: 1px solid ${() => theme.primary[300]};
       background-color: ${() => theme.primary[100]};
+      padding: 0.5rem;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      padding: 0.5rem;
-      flex-shrink: 0;
     }
 
     &:nth-of-type(2) {
@@ -412,7 +397,7 @@ const OMRRow = styled.div`
         // 선지 컨테이너
         flex-grow: 1;
         display: flex;
-        justify-content: space-around;
+        justify-content: space-evenly;
         align-items: center;
 
         & > div {
@@ -436,33 +421,6 @@ const OMRRow = styled.div`
         font-size: 0.9rem;
         padding: 0.5rem;
         border-radius: 0.25rem;
-      }
-    }
-  }
-
-  @media (max-width: 768px) {
-    & > div {
-      &:nth-of-type(1) {
-        width: 45px;
-        padding: 0.3rem;
-        font-size: 0.8rem;
-      }
-
-      &:nth-of-type(2) {
-        padding: 0.3rem;
-
-        & > div {
-          & > div {
-            font-size: 0.6rem;
-            padding: 0.1rem;
-            min-width: 8px;
-          }
-        }
-
-        & > input {
-          font-size: 0.8rem;
-          padding: 0.3rem;
-        }
       }
     }
   }
@@ -493,10 +451,6 @@ const ModalFooter = styled.div`
   border-top: 1px solid #eee;
   display: flex;
   justify-content: flex-end;
-
-  @media (max-width: 768px) {
-    padding: 0.8rem;
-  }
 `;
 
 const CloseModalButton = styled.button`

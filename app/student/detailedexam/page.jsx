@@ -353,22 +353,43 @@ function DetailedExamContent() {
                   // 객관식
                   <div>
                     {[1, 2, 3, 4, 5].map((option) => (
-                      <OMROption
+                      <div
                         key={option}
-                        $isSelected={studentAnswer === option}
+                        style={{
+                          backgroundColor:
+                            studentAnswer === option
+                              ? theme.black
+                              : "transparent",
+                          border:
+                            studentAnswer === option
+                              ? `1px solid ${theme.black}`
+                              : `1px solid ${theme.primary[300]}`,
+                          color:
+                            studentAnswer === option ? theme.black : "black",
+                        }}
                       >
                         {option}
-                      </OMROption>
+                      </div>
                     ))}
                   </div>
                 ) : (
                   // 주관식
                   <div>
-                    <OMRInput
+                    <input
                       type="number"
                       value={studentAnswer || ""}
                       readOnly
-                      $isCorrect={isCorrect}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: isCorrect ? "#e8f5e8" : "#ffeaea",
+                        border: "none",
+                        outline: "none",
+                        textAlign: "center",
+                        fontSize: "0.9rem",
+                        padding: "0.5rem",
+                        borderRadius: "0.25rem",
+                      }}
                     />
                   </div>
                 )}
@@ -388,6 +409,17 @@ function DetailedExamContent() {
 }
 
 const Wrapper = styled.div`
+  @font-face {
+    font-family: "ChosunGu";
+    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff")
+      format("woff");
+    font-weight: normal;
+    font-style: normal;
+  }
+  &,
+  & * {
+    font-family: "ChosunGu";
+  }
   padding: 1rem;
   min-height: 100vh;
   background-color: ${() => theme.white};
@@ -464,57 +496,50 @@ const AccuracyDisplay = styled.div`
 `;
 
 const OMR = styled.div`
-  border: 2px solid ${() => theme.primary[300]};
+  border: 2px solid ${() => theme.primary[500]};
   border-radius: 0.5rem;
+  width: 200px;
   overflow: hidden;
   margin-bottom: 1rem;
-  width: 100%;
-  max-width: 800px;
-
-  @media (max-width: 768px) {
-    border-width: 1px;
-    font-size: 0.8rem;
-  }
 `;
 
 const OMRHead = styled.div`
   display: flex;
-  background-color: ${() => theme.primary[200]};
-  font-weight: bold;
-  color: ${() => theme.primary[700]};
+
+  &:nth-of-type(1) {
+    border-bottom: 1px solid ${() => theme.primary[300]};
+  }
+
+  &:nth-of-type(5n + 1) {
+    border-bottom: 1px solid ${() => theme.primary[300]};
+  }
 
   & > div {
     text-align: center;
-    padding: 0.5rem;
 
     &:nth-of-type(1) {
       width: 55px;
       border-right: 1px solid ${() => theme.primary[300]};
+
+      & > div {
+        border-radius: 0.5rem 0 0 0;
+      }
     }
 
     &:nth-of-type(2) {
       flex-grow: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
 
       & > div {
+        border-radius: 0 0.5rem 0 0;
         display: flex;
-        gap: 0.5rem;
-
-        @media (max-width: 768px) {
-          gap: 0.2rem;
-          font-size: 0.7rem;
-        }
+        justify-content: space-evenly;
+        align-items: center;
       }
     }
-  }
-
-  @media (max-width: 768px) {
-    font-size: 0.8rem;
 
     & > div {
-      padding: 0.3rem;
+      padding: 0.5rem;
+      background-color: ${() => theme.primary[100]};
     }
   }
 `;
@@ -530,6 +555,14 @@ const OMRRow = styled.div`
     border-bottom: 1px solid ${() => theme.primary[300]};
   }
 
+  &:last-of-type {
+    border-bottom: 0;
+
+    & > div {
+      border-bottom-left-radius: 0.5rem;
+    }
+  }
+
   & > div {
     text-align: center;
 
@@ -538,6 +571,11 @@ const OMRRow = styled.div`
       width: 55px;
       border-right: 1px solid ${() => theme.primary[300]};
       background-color: ${() => theme.primary[100]};
+      padding: 0.5rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     &:nth-of-type(2) {
@@ -545,25 +583,37 @@ const OMRRow = styled.div`
       flex-grow: 1;
       display: flex;
       align-items: center;
-      justify-content: center;
+      padding: 0.5rem;
 
       & > div {
+        // 선지 컨테이너
+        flex-grow: 1;
         display: flex;
-        gap: 0.5rem;
+        justify-content: space-evenly;
+        align-items: center;
 
-        @media (max-width: 768px) {
-          gap: 0.2rem;
+        & > div {
+          // 선지
           font-size: 0.7rem;
+          border: 1px solid ${() => theme.primary[300]};
+          padding: 0.15rem;
+          border-radius: 0.5rem;
+          cursor: default;
+          min-width: 10px;
+          text-align: center;
         }
       }
-    }
-  }
 
-  @media (max-width: 768px) {
-    font-size: 0.8rem;
-
-    & > div {
-      padding: 0.3rem;
+      & > input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        text-align: center;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+      }
     }
   }
 `;
@@ -586,33 +636,6 @@ const CorrectCircle = styled.span`
 const IncorrectMark = styled.span`
   color: red;
   font-size: 1.2rem;
-`;
-
-const OMROption = styled.div`
-  background-color: ${(props) =>
-    props.$isSelected ? theme.black : "transparent"};
-  border: ${(props) =>
-    props.$isSelected
-      ? `1px solid ${theme.black}`
-      : `1px solid ${theme.primary[300]}`};
-  color: ${(props) => (props.$isSelected ? theme.black : "black")};
-  padding: 0.15rem;
-  border-radius: 0.5rem;
-  cursor: default;
-  min-width: 10px;
-  text-align: center;
-`;
-
-const OMRInput = styled.input`
-  width: 100%;
-  height: 100%;
-  background-color: ${(props) => (props.$isCorrect ? "#e8f5e8" : "#ffeaea")};
-  border: none;
-  outline: none;
-  text-align: center;
-  font-size: 0.9rem;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
 `;
 
 const ButtonContainer = styled.div`

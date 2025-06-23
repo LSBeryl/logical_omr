@@ -329,7 +329,10 @@ export default function Main() {
                     $isSelected={selectedSubject === `selective_${i + 1}`}
                     onClick={() => setSelectedSubject(`selective_${i + 1}`)}
                   >
-                    선택 과목 {i + 1}
+                    {selectedExam.selective_name
+                      ? selectedExam.selective_name.split(",")[i] ||
+                        `선택 과목 ${i + 1}`
+                      : `선택 과목 ${i + 1}`}
                   </SelectButton>
                 ))}
               </SelectContainer>
@@ -785,13 +788,13 @@ const Modal = styled.div`
   @media (max-width: 1024px) {
     width: 90%;
     max-width: 500px;
-    padding: 1.5rem;
+    /* padding: 1.5rem; */
   }
 
   @media (max-width: 768px) {
     width: 95%;
     max-width: 400px;
-    padding: 1rem;
+    /* padding: 1rem; */
     margin: 1rem;
   }
 `;
@@ -824,9 +827,9 @@ const ModalContent = styled.div`
     }
 
     @media (max-width: 768px) {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.3rem;
+      /* flex-direction: column; */
+      /* align-items: flex-start; */
+      /* gap: 0.3rem; */
     }
   }
 
@@ -842,8 +845,8 @@ const SelectContainer = styled.div`
   gap: 0.5rem;
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 0.3rem;
+    /* flex-direction: column; */
+    /* gap: 0.3rem; */
   }
 `;
 
@@ -875,7 +878,7 @@ const ModalButtons = styled.div`
   justify-content: space-between;
 
   @media (max-width: 768px) {
-    flex-direction: column;
+    /* flex-direction: column; */
     gap: 0.5rem;
   }
 `;
