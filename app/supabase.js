@@ -29,11 +29,19 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
       "X-Client-Info": "logical-omr",
     },
   },
+  // 네트워크 최적화 설정
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
 });
 
-// 연결 상태 확인
+// 연결 상태 확인 (로그 레벨 조정)
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log("Supabase Auth State Change:", event, session?.user?.id);
+  if (process.env.NODE_ENV === "development") {
+    console.log("Supabase Auth State Change:", event, session?.user?.id);
+  }
 });
 
 export default supabase;

@@ -11,20 +11,30 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 사용자 데이터 가져오기
+  // 사용자 데이터 캐시
+  const userDataCache = new Map();
+
+  // 사용자 데이터 가져오기 (최적화)
   const fetchUserData = async (userId) => {
     try {
-      // 타임아웃 설정 (5초)
+      // 캐시 확인
+      if (userDataCache.has(userId)) {
+        console.log("캐시된 사용자 데이터 사용:", userId);
+        return userDataCache.get(userId);
+      }
+
+      // 타임아웃 설정 (2초로 단축)
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(
           () => reject(new Error("사용자 데이터 조회 타임아웃")),
-          5000
+          2000
         );
       });
 
+      // 필요한 필드만 선택하여 쿼리 최적화
       const dataPromise = supabase
         .from("User")
-        .select("*")
+        .select("id, user_name, name, role, email, school, grade")
         .eq("id", userId)
         .single();
 
@@ -35,10 +45,23 @@ export function AuthProvider({ children }) {
         return null;
       }
 
+      // 캐시에 저장
+      userDataCache.set(userId, data);
+      console.log("사용자 데이터 캐시에 저장:", userId);
+
       return data;
     } catch (error) {
       console.error("사용자 데이터 가져오기 중 오류:", error);
       return null;
+    }
+  };
+
+  // 캐시 정리 함수
+  const clearUserDataCache = (userId) => {
+    if (userId) {
+      userDataCache.delete(userId);
+    } else {
+      userDataCache.clear();
     }
   };
 
@@ -104,6 +127,8 @@ export function AuthProvider({ children }) {
         setUser(null);
         setUserData(null);
         setError(null);
+        // 캐시 정리
+        clearUserDataCache();
       } else if (event === "TOKEN_REFRESHED") {
         console.log("토큰 갱신 감지");
         // 토큰이 갱신되면 사용자 데이터도 새로고침
@@ -115,6 +140,8 @@ export function AuthProvider({ children }) {
         console.log("사용자 정보 업데이트 감지");
         if (session?.user) {
           setUser(session.user);
+          // 사용자 정보 업데이트 시 캐시 무효화
+          clearUserDataCache(session.user.id);
           const userData = await fetchUserData(session.user.id);
           setUserData(userData);
         }
@@ -142,6 +169,8 @@ export function AuthProvider({ children }) {
         setUser(null);
         setUserData(null);
         setError(null);
+        // 캐시 정리
+        clearUserDataCache();
       }
     } catch (error) {
       console.error("로그아웃 중 오류:", error);
@@ -155,6 +184,8 @@ export function AuthProvider({ children }) {
   const refreshUserData = async () => {
     if (!user) return;
 
+    // 캐시 무효화 후 새로 가져오기
+    clearUserDataCache(user.id);
     const userData = await fetchUserData(user.id);
     setUserData(userData);
   };
