@@ -168,12 +168,12 @@ export default function ExamHistory() {
                   <ExamContent>
                     <ExamTitle>{exam.name}</ExamTitle>
                     <ExamDetails>
-                      <div>문제 수: {exam.question_num}문제</div>
+                      <div>문제 수 : {exam.question_num}문제</div>
                       <div>
-                        선택과목: {exam.has_selective ? "있음" : "없음"}
+                        선택과목 : {exam.has_selective ? "있음" : "없음"}
                       </div>
                       {exam.has_selective && (
-                        <div>선택과목 수: {exam.selective_num}개</div>
+                        <div>선택과목 수 : {exam.selective_num}개</div>
                       )}
                       <div>
                         생성일: {new Date(exam.created_at).toLocaleDateString()}
@@ -268,26 +268,31 @@ export default function ExamHistory() {
                     <SubmitContent>
                       <StudentInfo>
                         <div>
-                          <strong>학생 이름:</strong>{" "}
+                          <strong>학생 이름 : </strong>
+                          <span style={{ padding: "0 0.1rem" }}></span>
                           {submit.User?.name || "알 수 없음"}
                         </div>
                         <div>
-                          <strong>사용자명:</strong>{" "}
+                          <strong>사용자명 : </strong>
+                          <span style={{ padding: "0 0.1rem" }}></span>
                           {submit.User?.user_name || "알 수 없음"}
                         </div>
                         <div>
-                          <strong>제출 시각:</strong>{" "}
+                          <strong>제출 시각 : </strong>
+                          <span style={{ padding: "0 0.1rem" }}></span>
                           {new Date(submit.submitted_at).toLocaleString()}
                         </div>
                       </StudentInfo>
                       <AnswerInfo>
                         <div>
-                          <strong>제출된 답안:</strong>{" "}
+                          <strong>제출된 답안 : </strong>
+                          <span style={{ padding: "0 0.1rem" }}></span>
                           {submit.submitted_answer || "없음"}
                         </div>
                         {selectedExam.has_selective && (
                           <div>
-                            <strong>선택한 선택과목:</strong>{" "}
+                            <strong>선택한 선택과목 : </strong>
+                            <span style={{ padding: "0 0.1rem" }}></span>
                             {submit.selected_selective_num
                               ? (() => {
                                   const selectiveName =
@@ -305,13 +310,15 @@ export default function ExamHistory() {
                           </div>
                         )}
                         <div>
-                          <strong>점수:</strong>{" "}
+                          <strong>점수 : </strong>
+                          <span style={{ padding: "0 0.1rem" }}></span>
                           {submit.score !== null
                             ? `${submit.score}점`
                             : "채점 안됨"}
                         </div>
                         <div>
-                          <strong>총점:</strong>{" "}
+                          <strong>총점 : </strong>
+                          <span style={{ padding: "0 0.1rem" }}></span>
                           {submit.score !== null &&
                           submit.correct_count !== null
                             ? (() => {
@@ -364,14 +371,16 @@ export default function ExamHistory() {
                             : "채점 안됨"}
                         </div>
                         <div>
-                          <strong>맞힌 개수:</strong>{" "}
+                          <strong>맞힌 개수 : </strong>
+                          <span style={{ padding: "0 0.1rem" }}></span>
                           {submit.correct_count !== null
                             ? `${submit.correct_count}개`
                             : "채점 안됨"}
                         </div>
                         {submit.wrong_questions && (
                           <div>
-                            <strong>틀린 문제:</strong>{" "}
+                            <strong>틀린 문제 : </strong>
+                            <span style={{ padding: "0 0.1rem" }}></span>
                             {submit.wrong_questions || "없음"}
                           </div>
                         )}

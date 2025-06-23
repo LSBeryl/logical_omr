@@ -260,25 +260,32 @@ export default function Debug() {
               <DataItem key={index}>
                 <DataContent>
                   <div>
-                    <strong>ID:</strong> {user.id}
+                    <strong>ID</strong>
+                    <ColonSpan>:</ColonSpan> {user.id}
                   </div>
                   <div>
-                    <strong>사용자명:</strong> "{user.user_name}"
+                    <strong>사용자명</strong>
+                    <ColonSpan>:</ColonSpan> "{user.user_name}"
                   </div>
                   <div>
-                    <strong>이름:</strong> {user.name}
+                    <strong>이름</strong>
+                    <ColonSpan>:</ColonSpan> {user.name}
                   </div>
                   <div>
-                    <strong>이메일:</strong> {user.email}
+                    <strong>이메일</strong>
+                    <ColonSpan>:</ColonSpan> {user.email}
                   </div>
                   <div>
-                    <strong>역할:</strong> {user.role}
+                    <strong>역할</strong>
+                    <ColonSpan>:</ColonSpan> {user.role}
                   </div>
                   <div>
-                    <strong>학교:</strong> {user.school || "없음"}
+                    <strong>학교</strong>
+                    <ColonSpan>:</ColonSpan> {user.school || "없음"}
                   </div>
                   <div>
-                    <strong>학년:</strong> {user.grade || "없음"}
+                    <strong>학년</strong>
+                    <ColonSpan>:</ColonSpan> {user.grade || "없음"}
                   </div>
                 </DataContent>
                 <DeleteButton onClick={() => deleteUser(user.id)}>
@@ -298,21 +305,26 @@ export default function Debug() {
               <DataItem key={index}>
                 <DataContent>
                   <div>
-                    <strong>ID:</strong> {authUser.id}
+                    <strong>ID</strong>
+                    <ColonSpan>:</ColonSpan> {authUser.id}
                   </div>
                   <div>
-                    <strong>이메일:</strong> {authUser.email}
+                    <strong>이메일</strong>
+                    <ColonSpan>:</ColonSpan> {authUser.email}
                   </div>
                   <div>
-                    <strong>이메일 확인:</strong>{" "}
+                    <strong>이메일 확인</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {authUser.email_confirmed_at ? "확인됨" : "미확인"}
                   </div>
                   <div>
-                    <strong>가입일:</strong>{" "}
+                    <strong>가입일</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {new Date(authUser.created_at).toLocaleString()}
                   </div>
                   <div>
-                    <strong>마지막 로그인:</strong>{" "}
+                    <strong>마지막 로그인</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {authUser.last_sign_in_at
                       ? new Date(authUser.last_sign_in_at).toLocaleString()
                       : "없음"}
@@ -335,52 +347,61 @@ export default function Debug() {
               <DataItem key={index}>
                 <DataContent>
                   <div>
-                    <strong>ID:</strong> {exam.id}
+                    <strong>ID</strong>
+                    <ColonSpan>:</ColonSpan> {exam.id}
                   </div>
                   <div>
-                    <strong>시험명:</strong> {exam.name}
+                    <strong>시험명</strong>
+                    <ColonSpan>:</ColonSpan> {exam.name}
                   </div>
                   <div>
-                    <strong>문제 수:</strong> {exam.question_num}
+                    <strong>문제 수</strong>
+                    <ColonSpan>:</ColonSpan> {exam.question_num}
                   </div>
                   <div>
-                    <strong>선택과목 여부:</strong>{" "}
+                    <strong>선택과목 여부</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {exam.has_selective ? "있음" : "없음"}
                   </div>
                   <div>
-                    <strong>선택과목 수:</strong> {exam.selective_count || 0}
+                    <strong>선택과목 수</strong>
+                    <ColonSpan>:</ColonSpan> {exam.selective_count || 0}
                   </div>
                   <div>
-                    <strong>정답:</strong> {exam.answers || "없음"}
+                    <strong>정답</strong>
+                    <ColonSpan>:</ColonSpan> {exam.answers || "없음"}
                   </div>
                   <div>
-                    <strong>배점:</strong> {exam.answer_scores || "없음"}
+                    <strong>배점</strong>
+                    <ColonSpan>:</ColonSpan> {exam.answer_scores || "없음"}
                   </div>
                   <div>
-                    <strong>답안 유형:</strong> {exam.answer_types || "없음"}
+                    <strong>답안 유형</strong>
+                    <ColonSpan>:</ColonSpan> {exam.answer_types || "없음"}
                   </div>
                   <div>
-                    <strong>선택과목 범위:</strong>{" "}
-                    {exam.selective_range || "없음"}
+                    <strong>선택과목 범위</strong>
+                    <ColonSpan>:</ColonSpan> {exam.selective_range || "없음"}
                   </div>
                   <div>
-                    <strong>선택과목 정답:</strong>{" "}
-                    {exam.selective_answers || "없음"}
+                    <strong>선택과목 정답</strong>
+                    <ColonSpan>:</ColonSpan> {exam.selective_answers || "없음"}
                   </div>
                   <div>
-                    <strong>선택과목 배점:</strong>{" "}
-                    {exam.selective_scores || "없음"}
+                    <strong>선택과목 배점</strong>
+                    <ColonSpan>:</ColonSpan> {exam.selective_scores || "없음"}
                   </div>
                   <div>
-                    <strong>선택과목 유형:</strong>{" "}
-                    {exam.selective_types || "없음"}
+                    <strong>선택과목 유형</strong>
+                    <ColonSpan>:</ColonSpan> {exam.selective_types || "없음"}
                   </div>
                   <div>
-                    <strong>선택과목 이름:</strong>{" "}
-                    {exam.selective_name || "없음"}
+                    <strong>선택과목 이름</strong>
+                    <ColonSpan>:</ColonSpan> {exam.selective_name || "없음"}
                   </div>
                   <div>
-                    <strong>생성일:</strong>{" "}
+                    <strong>생성일</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {new Date(exam.created_at).toLocaleString()}
                   </div>
                 </DataContent>
@@ -401,56 +422,79 @@ export default function Debug() {
               <DataItem key={index}>
                 <DataContent>
                   <div>
-                    <strong>ID:</strong> {submit.id}
+                    <strong>ID</strong>
+                    <ColonSpan>:</ColonSpan> {submit.id}
                   </div>
                   <div>
-                    <strong>제출자:</strong> {submit.User?.name || "알 수 없음"}{" "}
+                    <strong>제출자</strong>
+                    <ColonSpan>:</ColonSpan> {submit.User?.name || "알 수 없음"}{" "}
                     ({submit.User?.user_name || "알 수 없음"})
                   </div>
                   <div>
-                    <strong>제출자 역할:</strong>{" "}
-                    {submit.User?.role || "알 수 없음"}
+                    <strong>제출자 역할</strong>
+                    <ColonSpan>:</ColonSpan> {submit.User?.role || "알 수 없음"}
                   </div>
                   <div>
-                    <strong>시험명:</strong> {submit.Exam?.name || "알 수 없음"}
+                    <strong>시험명</strong>
+                    <ColonSpan>:</ColonSpan> {submit.Exam?.name || "알 수 없음"}
                   </div>
                   <div>
-                    <strong>문제 수:</strong>{" "}
-                    {submit.Exam?.question_num || "알 수 없음"}
+                    <strong>문제 수</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
+                    {submit.Exam?.question_num || "알 수 없음"}문제
                   </div>
                   <div>
-                    <strong>제출된 답안:</strong>{" "}
-                    {submit.submitted_answer || "없음"}
+                    <strong>제출된 답안</strong>
+                    <ColonSpan>:</ColonSpan> {submit.submitted_answer || "없음"}
                   </div>
                   <div>
-                    <strong>선택한 선택과목:</strong>{" "}
+                    <strong>선택한 선택과목</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {submit.selected_selective_num
-                      ? `선택 과목 ${submit.selected_selective_num}`
-                      : "없음"}
+                      ? (() => {
+                          const selectiveName = submit.Exam?.selective_name
+                            ? submit.Exam.selective_name.split(",")[
+                                submit.selected_selective_num - 1
+                              ]
+                            : null;
+                          return (
+                            selectiveName ||
+                            `선택 과목 ${submit.selected_selective_num}`
+                          );
+                        })()
+                      : "선택하지 않음"}
                   </div>
                   <div>
-                    <strong>점수:</strong>{" "}
-                    {submit.score !== null ? `${submit.score}점` : "없음"}
+                    <strong>점수</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
+                    {submit.score !== null ? `${submit.score}점` : "채점 안됨"}
                   </div>
                   <div>
-                    <strong>맞힌 개수:</strong>{" "}
+                    <strong>맞힌 개수</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {submit.correct_count !== null
                       ? `${submit.correct_count}개`
-                      : "없음"}
+                      : "채점 안됨"}
                   </div>
+                  {submit.wrong_questions && (
+                    <div>
+                      <strong>틀린 문제</strong>
+                      <ColonSpan>:</ColonSpan>{" "}
+                      {submit.wrong_questions || "없음"}
+                    </div>
+                  )}
                   <div>
-                    <strong>틀린 문제:</strong>{" "}
-                    {submit.wrong_questions || "없음"}
-                  </div>
-                  <div>
-                    <strong>제출 시각:</strong>{" "}
+                    <strong>제출 시각</strong>
+                    <ColonSpan>:</ColonSpan>{" "}
                     {new Date(submit.submitted_at).toLocaleString()}
                   </div>
                   <div>
-                    <strong>제출자 ID:</strong> {submit.submitter_id}
+                    <strong>제출자 ID</strong>
+                    <ColonSpan>:</ColonSpan> {submit.submitter_id}
                   </div>
                   <div>
-                    <strong>시험 ID:</strong> {submit.exam_id}
+                    <strong>시험 ID</strong>
+                    <ColonSpan>:</ColonSpan> {submit.exam_id}
                   </div>
                 </DataContent>
                 <DeleteButton onClick={() => deleteSubmit(submit.id)}>
@@ -569,6 +613,10 @@ const DataItem = styled.div`
 
 const DataContent = styled.div`
   flex: 1;
+`;
+
+const ColonSpan = styled.span`
+  margin: 0 4px;
 `;
 
 const DeleteButton = styled.button`

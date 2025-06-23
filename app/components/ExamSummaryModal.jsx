@@ -33,10 +33,10 @@ export default function ExamSummaryModal({
       <Modal>
         <Title>시험 등록 최종 확인</Title>
         <Section>
-          <b>시험명:</b> {examName}
+          <b>시험명 : </b> {examName}
         </Section>
         <Section>
-          <b>문제 수:</b> {examNum}문제
+          <b>문제 수 : </b> {examNum}문제
         </Section>
         <Section>
           <b>선택 과목:</b>{" "}

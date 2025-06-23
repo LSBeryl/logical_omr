@@ -254,7 +254,7 @@ function DetailedExamContent() {
   if (loading) {
     return (
       <Wrapper>
-        <div style={{ textAlign: "center", padding: "2rem" }}>로딩 중...</div>
+        <LoadingMessage>로딩 중...</LoadingMessage>
       </Wrapper>
     );
   }
@@ -281,60 +281,38 @@ function DetailedExamContent() {
   return (
     <Wrapper>
       <Header>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "600" }}>
-              {examData?.name}
-            </h1>
-            <div
-              style={{ color: "#666", fontSize: "0.9rem", marginTop: "0.3rem" }}
-            >
+        <HeaderContent>
+          <HeaderLeft>
+            <ExamTitle>{examData?.name}</ExamTitle>
+            <ExamDate>
               제출일:{" "}
               {submitData &&
                 new Date(submitData.submitted_at).toLocaleDateString()}
-            </div>
+            </ExamDate>
             {submitData?.selected_selective_num && (
-              <div
-                style={{
-                  color: "#666",
-                  fontSize: "0.9rem",
-                  marginTop: "0.3rem",
-                }}
-              >
+              <SelectiveSubject>
                 선택 과목:{" "}
                 {examData?.selective_name
                   ? examData.selective_name.split(",")[
                       submitData.selected_selective_num - 1
                     ] || `선택 과목 ${submitData.selected_selective_num}`
                   : `선택 과목 ${submitData.selected_selective_num}`}
-              </div>
+              </SelectiveSubject>
             )}
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div
-              style={{
-                fontSize: "1.2rem",
-                fontWeight: "600",
-                color: "#28a745",
-              }}
-            >
+          </HeaderLeft>
+          <HeaderRight>
+            <ScoreDisplay>
               {score.earnedScore} / {score.totalScore}점
-            </div>
-            <div style={{ fontSize: "0.9rem", color: "#666" }}>
+            </ScoreDisplay>
+            <AccuracyDisplay>
               정답률:{" "}
               {score.total > 0
                 ? Math.round((score.correct / score.total) * 100)
                 : 0}
               %
-            </div>
-          </div>
-        </div>
+            </AccuracyDisplay>
+          </HeaderRight>
+        </HeaderContent>
       </Header>
 
       <OMR>
@@ -375,43 +353,22 @@ function DetailedExamContent() {
                   // 객관식
                   <div>
                     {[1, 2, 3, 4, 5].map((option) => (
-                      <div
+                      <OMROption
                         key={option}
-                        style={{
-                          backgroundColor:
-                            studentAnswer === option
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            studentAnswer === option
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                          color:
-                            studentAnswer === option ? theme.black : "black",
-                        }}
+                        $isSelected={studentAnswer === option}
                       >
                         {option}
-                      </div>
+                      </OMROption>
                     ))}
                   </div>
                 ) : (
                   // 주관식
                   <div>
-                    <input
+                    <OMRInput
                       type="number"
                       value={studentAnswer || ""}
                       readOnly
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: isCorrect ? "#e8f5e8" : "#ffeaea",
-                        border: "none",
-                        outline: "none",
-                        textAlign: "center",
-                        fontSize: "0.9rem",
-                        padding: "0.5rem",
-                        borderRadius: "0.25rem",
-                      }}
+                      $isCorrect={isCorrect}
                     />
                   </div>
                 )}
@@ -463,123 +420,150 @@ const Header = styled.div`
   }
 `;
 
+const HeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const HeaderLeft = styled.div`
+  flex: 1;
+`;
+
+const HeaderRight = styled.div`
+  text-align: right;
+`;
+
+const ExamTitle = styled.h1`
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+`;
+
+const ExamDate = styled.div`
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+`;
+
+const SelectiveSubject = styled.div`
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+`;
+
+const ScoreDisplay = styled.div`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #28a745;
+`;
+
+const AccuracyDisplay = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+`;
+
 const OMR = styled.div`
-  @font-face {
-    font-family: "ChosunGu";
-    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff")
-      format("woff");
-    font-weight: normal;
-    font-style: normal;
-  }
-  &,
-  & * {
-    font-family: "ChosunGu";
-  }
-  border: 2px solid ${() => theme.primary[500]};
+  border: 2px solid ${() => theme.primary[300]};
   border-radius: 0.5rem;
-  width: 500px;
-  margin-bottom: 2rem;
-  width: 200px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 800px;
+
+  @media (max-width: 768px) {
+    border-width: 1px;
+    font-size: 0.8rem;
+  }
 `;
 
 const OMRHead = styled.div`
   display: flex;
-  &:nth-of-type(1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
-  &:nth-of-type(5n + 1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
+  background-color: ${() => theme.primary[200]};
+  font-weight: bold;
+  color: ${() => theme.primary[700]};
+
   & > div {
     text-align: center;
+    padding: 0.5rem;
+
     &:nth-of-type(1) {
       width: 55px;
       border-right: 1px solid ${() => theme.primary[300]};
-      & > div {
-        border-radius: 0.5rem 0 0 0;
-      }
     }
+
     &:nth-of-type(2) {
       flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
       & > div {
-        border-radius: 0 0.5rem 0 0;
         display: flex;
-        justify-content: space-evenly;
+        gap: 0.5rem;
+
+        @media (max-width: 768px) {
+          gap: 0.2rem;
+          font-size: 0.7rem;
+        }
       }
     }
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+
     & > div {
-      padding: 0.5rem;
-      background-color: ${() => theme.primary[100]};
+      padding: 0.3rem;
     }
   }
 `;
 
 const OMRRow = styled.div`
   display: flex;
+
   &:nth-of-type(1) {
     border-bottom: 1px solid ${() => theme.primary[300]};
   }
+
   &:nth-of-type(5n + 1) {
     border-bottom: 1px solid ${() => theme.primary[300]};
   }
 
-  &:last-of-type {
-    border-bottom: 0;
-    & > div {
-      border-bottom-left-radius: 0.5rem;
-    }
-  }
-
   & > div {
     text-align: center;
+
     &:nth-of-type(1) {
       // 문제 번호
       width: 55px;
       border-right: 1px solid ${() => theme.primary[300]};
       background-color: ${() => theme.primary[100]};
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      padding: 0.5rem;
-      flex-shrink: 0;
     }
+
     &:nth-of-type(2) {
       // 선지 컨테이너
       flex-grow: 1;
       display: flex;
       align-items: center;
-      padding: 0.5rem;
+      justify-content: center;
 
       & > div {
-        // 선지 컨테이너
-        flex-grow: 1;
         display: flex;
-        justify-content: space-around;
-        align-items: center;
+        gap: 0.5rem;
 
-        & > div {
-          // 선지
+        @media (max-width: 768px) {
+          gap: 0.2rem;
           font-size: 0.7rem;
-          border: 1px solid ${() => theme.primary[300]};
-          padding: 0.15rem;
-          border-radius: 0.5rem;
-          cursor: default;
-          min-width: 10px;
-          text-align: center;
         }
       }
+    }
+  }
 
-      & > input {
-        width: 100%;
-        height: 100%;
-        border: none;
-        outline: none;
-        text-align: center;
-        font-size: 0.9rem;
-        padding: 0.5rem;
-        border-radius: 0.25rem;
-      }
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+
+    & > div {
+      padding: 0.3rem;
     }
   }
 `;
@@ -604,26 +588,64 @@ const IncorrectMark = styled.span`
   font-size: 1.2rem;
 `;
 
+const OMROption = styled.div`
+  background-color: ${(props) =>
+    props.$isSelected ? theme.black : "transparent"};
+  border: ${(props) =>
+    props.$isSelected
+      ? `1px solid ${theme.black}`
+      : `1px solid ${theme.primary[300]}`};
+  color: ${(props) => (props.$isSelected ? theme.black : "black")};
+  padding: 0.15rem;
+  border-radius: 0.5rem;
+  cursor: default;
+  min-width: 10px;
+  text-align: center;
+`;
+
+const OMRInput = styled.input`
+  width: 100%;
+  height: 100%;
+  background-color: ${(props) => (props.$isCorrect ? "#e8f5e8" : "#ffeaea")};
+  border: none;
+  outline: none;
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+`;
+
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  margin-top: 2rem;
 `;
 
 const HomeButton = styled.button`
-  padding: 0.75rem 1rem;
-  border: none;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid ${() => theme.primary[500]};
   border-radius: 0.5rem;
-  background-color: ${() => theme.primary[500]};
-  color: ${() => theme.white};
-  font-size: 1rem;
-  font-weight: bold;
+  background: ${() => theme.primary[500]};
+  color: white;
   cursor: pointer;
-  transition: background-color 0.3s;
+  font-weight: 500;
+  transition: all 0.2s;
 
   &:hover {
-    background-color: ${() => theme.primary[600]};
+    background: ${() => theme.primary[600]};
   }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+`;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: #666;
 `;
 
 export default function DetailedExam() {

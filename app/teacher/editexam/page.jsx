@@ -118,10 +118,10 @@ export default function EditExam() {
               <ExamTitle>{exam.name}</ExamTitle>
               <ExamContent>
                 <ExamDetails>
-                  <div>문제 수: {exam.question_num}문제</div>
-                  <div>선택과목: {exam.has_selective ? "있음" : "없음"}</div>
+                  <div>문제 수 : {exam.question_num}문제</div>
+                  <div>선택과목 : {exam.has_selective ? "있음" : "없음"}</div>
                   {exam.has_selective && (
-                    <div>선택과목 수: {exam.selective_num}개</div>
+                    <div>선택과목 수 : {exam.selective_num}개</div>
                   )}
                   <div>
                     생성일: {new Date(exam.created_at).toLocaleDateString()}

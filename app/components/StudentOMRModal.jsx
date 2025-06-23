@@ -72,18 +72,20 @@ export default function StudentOMRModal({ open, onClose, submit, student }) {
 
         <StudentInfo>
           <div>
-            <strong>학생:</strong> {student.name} ({student.user_name})
+            <strong>학생 : </strong> {student.name} ({student.user_name})
           </div>
           <div>
-            <strong>시험:</strong> {examData?.name}
+            <strong>시험 : </strong> {examData?.name}
           </div>
           <div>
-            <strong>제출 시각:</strong>{" "}
+            <strong>제출 시각 : </strong>
+            <span style={{ padding: "0 0.1rem" }}></span>
             {new Date(submit.submitted_at).toLocaleString()}
           </div>
           {submit.selected_selective_num && (
             <div>
-              <strong>선택 과목:</strong>{" "}
+              <strong>선택 과목 : </strong>
+              <span style={{ padding: "0 0.1rem" }}></span>
               {examData?.selective_name
                 ? examData.selective_name.split(",")[
                     submit.selected_selective_num - 1
@@ -92,7 +94,8 @@ export default function StudentOMRModal({ open, onClose, submit, student }) {
             </div>
           )}
           <div>
-            <strong>점수:</strong>{" "}
+            <strong>점수 : </strong>
+            <span style={{ padding: "0 0.1rem" }}></span>
             {submit.score !== null ? `${submit.score}점` : "채점 안됨"}
           </div>
         </StudentInfo>

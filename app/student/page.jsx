@@ -197,99 +197,29 @@ function StudentContent() {
                     {answerType === "객" ? (
                       // 객관식
                       <div>
-                        <div
-                          style={{
-                            backgroundColor:
-                              submittedAnswer === 1
-                                ? theme.black
-                                : "transparent",
-                            border:
-                              submittedAnswer === 1
-                                ? `1px solid ${theme.black}`
-                                : `1px solid ${theme.primary[300]}`,
-                            color:
-                              submittedAnswer === 1 ? theme.black : theme.black,
-                          }}
-                        >
+                        <OMROption $isSelected={submittedAnswer === 1}>
                           1
-                        </div>
-                        <div
-                          style={{
-                            backgroundColor:
-                              submittedAnswer === 2
-                                ? theme.black
-                                : "transparent",
-                            border:
-                              submittedAnswer === 2
-                                ? `1px solid ${theme.black}`
-                                : `1px solid ${theme.primary[300]}`,
-                            color:
-                              submittedAnswer === 2 ? theme.black : theme.black,
-                          }}
-                        >
+                        </OMROption>
+                        <OMROption $isSelected={submittedAnswer === 2}>
                           2
-                        </div>
-                        <div
-                          style={{
-                            backgroundColor:
-                              submittedAnswer === 3
-                                ? theme.black
-                                : "transparent",
-                            border:
-                              submittedAnswer === 3
-                                ? `1px solid ${theme.black}`
-                                : `1px solid ${theme.primary[300]}`,
-                            color:
-                              submittedAnswer === 3 ? theme.black : theme.black,
-                          }}
-                        >
+                        </OMROption>
+                        <OMROption $isSelected={submittedAnswer === 3}>
                           3
-                        </div>
-                        <div
-                          style={{
-                            backgroundColor:
-                              submittedAnswer === 4
-                                ? theme.black
-                                : "transparent",
-                            border:
-                              submittedAnswer === 4
-                                ? `1px solid ${theme.black}`
-                                : `1px solid ${theme.primary[300]}`,
-                            color:
-                              submittedAnswer === 4 ? theme.black : theme.black,
-                          }}
-                        >
+                        </OMROption>
+                        <OMROption $isSelected={submittedAnswer === 4}>
                           4
-                        </div>
-                        <div
-                          style={{
-                            backgroundColor:
-                              submittedAnswer === 5
-                                ? theme.black
-                                : "transparent",
-                            border:
-                              submittedAnswer === 5
-                                ? `1px solid ${theme.black}`
-                                : `1px solid ${theme.primary[300]}`,
-                            color:
-                              submittedAnswer === 5 ? theme.black : theme.black,
-                          }}
-                        >
+                        </OMROption>
+                        <OMROption $isSelected={submittedAnswer === 5}>
                           5
-                        </div>
+                        </OMROption>
                       </div>
                     ) : (
                       // 주관식
-                      <input
+                      <OMRInput
                         type="number"
                         value={submittedAnswer || ""}
                         placeholder="주관식 답 입력"
                         disabled
-                        style={{
-                          opacity: 0.7,
-                          cursor: "not-allowed",
-                          backgroundColor: "#f5f5f5",
-                        }}
                       />
                     )}
                   </div>
@@ -302,12 +232,12 @@ function StudentContent() {
           <ScoreDisplay>
             <div>
               <strong>
-                맞은 문제: ({score.correct} / {score.total})
+                맞은 문제 : ({score.correct} / {score.total})
               </strong>
             </div>
             <div>
               <strong>
-                점수: ({score.earnedScore} / {score.totalScore})
+                점수 : ({score.earnedScore} / {score.totalScore})
               </strong>
             </div>
           </ScoreDisplay>
@@ -610,12 +540,12 @@ function StudentContent() {
         <ScoreDisplay>
           <div>
             <strong>
-              맞은 문제: ({score.correct} / {score.total})
+              맞은 문제 : ({score.correct} / {score.total})
             </strong>
           </div>
           <div>
             <strong>
-              점수: ({score.earnedScore} / {score.totalScore})
+              점수 : ({score.earnedScore} / {score.totalScore})
             </strong>
           </div>
         </ScoreDisplay>
@@ -704,115 +634,25 @@ function StudentContent() {
                   {answerType === "객" ? (
                     // 객관식
                     <div>
-                      <div
-                        onClick={
-                          graded
-                            ? null
-                            : () => handleAnswerChange(questionNumber, 1)
-                        }
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 1
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 1
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                          cursor: graded ? "not-allowed" : "pointer",
-                          opacity: graded ? 0.7 : 1,
-                        }}
-                      >
+                      <OMROption $isSelected={submittedAnswer === 1}>
                         1
-                      </div>
-                      <div
-                        onClick={
-                          graded
-                            ? null
-                            : () => handleAnswerChange(questionNumber, 2)
-                        }
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 2
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 2
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                          cursor: graded ? "not-allowed" : "pointer",
-                          opacity: graded ? 0.7 : 1,
-                        }}
-                      >
+                      </OMROption>
+                      <OMROption $isSelected={submittedAnswer === 2}>
                         2
-                      </div>
-                      <div
-                        onClick={
-                          graded
-                            ? null
-                            : () => handleAnswerChange(questionNumber, 3)
-                        }
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 3
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 3
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                          cursor: graded ? "not-allowed" : "pointer",
-                          opacity: graded ? 0.7 : 1,
-                        }}
-                      >
+                      </OMROption>
+                      <OMROption $isSelected={submittedAnswer === 3}>
                         3
-                      </div>
-                      <div
-                        onClick={
-                          graded
-                            ? null
-                            : () => handleAnswerChange(questionNumber, 4)
-                        }
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 4
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 4
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                          cursor: graded ? "not-allowed" : "pointer",
-                          opacity: graded ? 0.7 : 1,
-                        }}
-                      >
+                      </OMROption>
+                      <OMROption $isSelected={submittedAnswer === 4}>
                         4
-                      </div>
-                      <div
-                        onClick={
-                          graded
-                            ? null
-                            : () => handleAnswerChange(questionNumber, 5)
-                        }
-                        style={{
-                          backgroundColor:
-                            answers[questionNumber] === 5
-                              ? theme.black
-                              : "transparent",
-                          border:
-                            answers[questionNumber] === 5
-                              ? `1px solid ${theme.black}`
-                              : `1px solid ${theme.primary[300]}`,
-                          cursor: graded ? "not-allowed" : "pointer",
-                          opacity: graded ? 0.7 : 1,
-                        }}
-                      >
+                      </OMROption>
+                      <OMROption $isSelected={submittedAnswer === 5}>
                         5
-                      </div>
+                      </OMROption>
                     </div>
                   ) : (
                     // 주관식
-                    <input
+                    <OMRInput
                       type="number"
                       max={999}
                       min={0}
@@ -830,10 +670,6 @@ function StudentContent() {
                       }}
                       placeholder="주관식 답 입력"
                       disabled={graded}
-                      style={{
-                        opacity: graded ? 0.7 : 1,
-                        cursor: graded ? "not-allowed" : "text",
-                      }}
                     />
                   )}
                 </div>
@@ -870,15 +706,7 @@ function StudentContent() {
               <ModalButton onClick={() => setShowSubmitModal(false)}>
                 취소
               </ModalButton>
-              <ModalButton
-                onClick={handleSubmit}
-                style={{
-                  backgroundColor: theme.primary[500],
-                  color: theme.white,
-                }}
-              >
-                확인
-              </ModalButton>
+              <ConfirmButton onClick={handleSubmit}>확인</ConfirmButton>
             </ModalButtons>
           </ModalContent>
         </ModalWrapper>
@@ -905,15 +733,7 @@ function StudentContent() {
               <ModalButton onClick={() => setShowAutoFillModal(false)}>
                 취소
               </ModalButton>
-              <ModalButton
-                onClick={executeAutoFill}
-                style={{
-                  backgroundColor: theme.primary[500],
-                  color: theme.white,
-                }}
-              >
-                확인
-              </ModalButton>
+              <ConfirmButton onClick={executeAutoFill}>확인</ConfirmButton>
             </ModalButtons>
           </ModalContent>
         </ModalWrapper>
@@ -1309,6 +1129,27 @@ const ModalButton = styled.button`
   }
 `;
 
+const ConfirmButton = styled.button`
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: ${() => theme.primary[500]};
+  color: ${() => theme.white};
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
+`;
+
 const AlreadySubmittedMessage = styled.div`
   padding: 1rem;
   border-radius: 0.5rem;
@@ -1329,6 +1170,31 @@ const AlreadySubmittedMessage = styled.div`
     padding: 0.8rem;
     font-size: 0.9rem;
   }
+`;
+
+const OMROption = styled.div`
+  background-color: ${(props) =>
+    props.$isSelected ? theme.black : "transparent"};
+  border: ${(props) =>
+    props.$isSelected
+      ? `1px solid ${theme.black}`
+      : `1px solid ${theme.primary[300]}`};
+  color: ${(props) => (props.$isSelected ? theme.black : theme.black)};
+  padding: 0.15rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+`;
+
+const OMRInput = styled.input`
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  text-align: center;
+  font-size: 0.9rem;
 `;
 
 export default function Student() {

@@ -184,32 +184,11 @@ export default function Main() {
   if (loading) {
     return (
       <Wrapper>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100vh",
-            gap: "1rem",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "1.2rem",
-              fontWeight: "600",
-              color: theme.primary[500],
-            }}
-          >
-            로딩 중...
-          </div>
-          <div style={{ fontSize: "0.9rem", color: "#666" }}>
-            인증 상태를 확인하고 있습니다
-          </div>
-          <div style={{ fontSize: "0.8rem", color: "#999" }}>
-            잠시만 기다려주세요
-          </div>
-        </div>
+        <LoadingContainer>
+          <LoadingTitle>로딩 중...</LoadingTitle>
+          <LoadingSubtitle>인증 상태를 확인하고 있습니다</LoadingSubtitle>
+          <LoadingMessage>잠시만 기다려주세요</LoadingMessage>
+        </LoadingContainer>
       </Wrapper>
     );
   }
@@ -217,53 +196,20 @@ export default function Main() {
   if (error) {
     return (
       <Wrapper>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100vh",
-            gap: "1rem",
-          }}
-        >
-          <div
-            style={{ fontSize: "1.2rem", fontWeight: "600", color: "#e74c3c" }}
-          >
-            연결 오류
-          </div>
-          <div
-            style={{
-              fontSize: "0.9rem",
-              color: "#666",
-              textAlign: "center",
-              maxWidth: "400px",
-            }}
-          >
+        <ErrorContainer>
+          <ErrorTitle>연결 오류</ErrorTitle>
+          <ErrorMessage>
             {error.includes("타임아웃")
               ? "서버 연결이 지연되고 있습니다. 잠시 후 다시 시도해주세요."
               : error.includes("환경 변수")
               ? "서버 설정에 문제가 있습니다. 관리자에게 문의해주세요."
               : error}
-          </div>
-          <div style={{ fontSize: "0.8rem", color: "#999" }}>
-            오류 코드: {error}
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              background: theme.primary[500],
-              color: "white",
-              border: "none",
-              padding: "0.5rem 1rem",
-              borderRadius: "0.5rem",
-              cursor: "pointer",
-              fontWeight: "600",
-            }}
-          >
+          </ErrorMessage>
+          <ErrorCode>오류 코드: {error}</ErrorCode>
+          <RetryButton onClick={() => window.location.reload()}>
             다시 시도
-          </button>
-        </div>
+          </RetryButton>
+        </ErrorContainer>
       </Wrapper>
     );
   }
@@ -275,9 +221,7 @@ export default function Main() {
           <UserInfo>
             현재 로그인 계정 : {userData.name}
             {userData.user_name && (
-              <span style={{ color: "#888", marginLeft: 4 }}>
-                ({userData.user_name})
-              </span>
+              <UserNameSpan>({userData.user_name})</UserNameSpan>
             )}
           </UserInfo>
         )}
@@ -288,21 +232,14 @@ export default function Main() {
         </div>
         <div>
           로지컬 모의고사{" "}
-          <span
+          <OMRSpan
             tabIndex={-1}
             onKeyDown={(e) => {
               setCode((prev) => prev + e.key.toUpperCase());
             }}
-            style={{
-              borderRadius: "0.5rem",
-              fontWeight: 600,
-              padding: "0.3rem 0.5rem",
-              color: theme.white,
-              background: theme.primary[500],
-            }}
           >
             OMR
-          </span>
+          </OMRSpan>
         </div>
       </Title>
       <MainContainer>
@@ -312,40 +249,27 @@ export default function Main() {
         <ExamBoxContainer>
           <ExamBox $isLoggedIn={!!user}>
             {examsLoading ? (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "100px",
-                  color: "#666",
-                  fontSize: "0.9rem",
-                }}
-              >
+              <LoadingMessageContainer>
                 시험 목록을 불러오는 중...
-              </div>
+              </LoadingMessageContainer>
             ) : exams.length > 0 ? (
               exams.map((exam) => (
                 <ExamBoxRow key={exam.id}>
-                  <div>{exam.name}</div>
-                  <div
+                  <ExamTitle>{exam.name}</ExamTitle>
+                  <ExamButton
                     onClick={() =>
                       !hasTakenExam(exam.id) && handleEnterExam(exam.id)
                     }
-                    style={{
-                      cursor: hasTakenExam(exam.id) ? "not-allowed" : "pointer",
-                      opacity: hasTakenExam(exam.id) ? 0.5 : 1,
-                      background: hasTakenExam(exam.id) ? "#ccc" : "#082870",
-                    }}
+                    $isCompleted={hasTakenExam(exam.id)}
                   >
                     {hasTakenExam(exam.id) ? "완료" : "입장"}
-                  </div>
+                  </ExamButton>
                 </ExamBoxRow>
               ))
             ) : (
               <ExamBoxRow>
                 <div>등록된 시험이 없습니다</div>
-                <div style={{ visibility: "hidden" }}>입장</div>
+                <HiddenButton>입장</HiddenButton>
               </ExamBoxRow>
             )}
           </ExamBox>
@@ -380,24 +304,12 @@ export default function Main() {
         )}
         {/* 디버그 정보 표시 (개발 환경에서만) */}
         {process.env.NODE_ENV === "development" && (
-          <div
-            style={{
-              position: "fixed",
-              bottom: "10px",
-              right: "10px",
-              background: "rgba(0,0,0,0.8)",
-              color: "white",
-              padding: "10px",
-              borderRadius: "5px",
-              fontSize: "12px",
-              maxWidth: "300px",
-            }}
-          >
+          <DebugInfo>
             <div>User: {user ? "로그인됨" : "로그아웃됨"}</div>
             <div>UserData: {userData ? userData.user_name : "없음"}</div>
             <div>Loading: {loading ? "예" : "아니오"}</div>
             {error && <div>Error: {error}</div>}
-          </div>
+          </DebugInfo>
         )}
       </MainContainer>
 
@@ -450,118 +362,37 @@ export default function Main() {
             <ModalTitle>내 시험 목록</ModalTitle>
             <ModalContent>
               {myExamsLoading ? (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    height: "100px",
-                    color: "#666",
-                    fontSize: "0.9rem",
-                  }}
-                >
+                <LoadingMessageContainer>
                   내 시험 목록을 불러오는 중...
-                </div>
+                </LoadingMessageContainer>
               ) : myExams.length > 0 ? (
-                <div
-                  style={{
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                    width: "100%",
-                    flexDirection: "column",
-                    gap: "1rem",
-                  }}
-                >
+                <MyExamsList>
                   {myExams.map((myExam) => (
-                    <div
-                      key={myExam.id}
-                      style={{
-                        padding: "1rem",
-                        borderBottom: "1px solid #eee",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        width: "100%",
-                        boxSizing: "border-box",
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: "600", fontSize: "1rem" }}>
-                          {myExam.Exam.name}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.9rem",
-                            color: "#666",
-                            marginTop: "0.3rem",
-                          }}
-                        >
+                    <MyExamItem key={myExam.id}>
+                      <MyExamInfo>
+                        <MyExamName>{myExam.Exam.name}</MyExamName>
+                        <MyExamDate>
                           {new Date(myExam.submitted_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                        }}
-                      >
-                        <button
+                        </MyExamDate>
+                      </MyExamInfo>
+                      <MyExamActions>
+                        <DetailButton
                           onClick={(e) => {
                             e.stopPropagation();
                             router.push(
                               `/student/detailedexam?examId=${myExam.exam_id}&submitId=${myExam.id}`
                             );
                           }}
-                          style={{
-                            padding: "0.3rem 0.8rem",
-                            border: "1px solid #ccc",
-                            borderRadius: "0.3rem",
-                            background: "white",
-                            color: "#666",
-                            fontSize: "0.8rem",
-                            cursor: "pointer",
-                            transition: "background-color 0.2s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#f5f5f5";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "white";
-                          }}
                         >
                           상세정보
-                        </button>
-                        <div
-                          style={{
-                            color: "#28a745",
-                            fontSize: "1rem",
-                            fontWeight: "700",
-                            padding: "0.3rem 0.8rem",
-                            background: "#e8f5e8",
-                            borderRadius: "0.3rem",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {myExam.score}점
-                        </div>
-                      </div>
-                    </div>
+                        </DetailButton>
+                        <ScoreDisplay>{myExam.score}점</ScoreDisplay>
+                      </MyExamActions>
+                    </MyExamItem>
                   ))}
-                </div>
+                </MyExamsList>
               ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100px",
-                    color: "#666",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  아직 본 시험이 없습니다
-                </div>
+                <NoExamsMessage>아직 본 시험이 없습니다</NoExamsMessage>
               )}
               <ModalButtons>
                 <CancelButton onClick={handleCloseMyExamsModal}>
@@ -618,6 +449,11 @@ const UserInfo = styled.div`
   @media (max-width: 768px) {
     font-size: 0.85rem;
   }
+`;
+
+const UserNameSpan = styled.span`
+  color: #888;
+  margin-left: 4px;
 `;
 
 const Title = styled.div`
@@ -722,6 +558,12 @@ const ExamBoxRow = styled.div`
     font-size: 0.9rem;
     font-weight: 600;
 
+    &:nth-of-type(1) {
+      @media (max-width: 768px) {
+        width: 80%;
+      }
+    }
+
     &:nth-of-type(2) {
       border-radius: 0.5rem;
       font-size: 0.8rem;
@@ -738,6 +580,7 @@ const ExamBoxRow = styled.div`
       @media (max-width: 768px) {
         font-size: 0.7rem;
         padding: 0.25rem 0.4rem;
+        /* flex-grow: 1; */
       }
     }
 
@@ -747,7 +590,36 @@ const ExamBoxRow = styled.div`
   }
 
   @media (max-width: 768px) {
-    padding: 0.8rem 0;
+    padding: 0.8rem 0.5rem;
+  }
+`;
+
+const ExamTitle = styled.div`
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  @media (max-width: 768px) {
+    width: 80%;
+  }
+`;
+
+const ExamButton = styled.button`
+  background: ${(props) => (props.$isCompleted ? "#ccc" : theme.primary[500])};
+  color: ${(props) => (props.$isCompleted ? "#666" : theme.white)};
+  padding: 0.3rem 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+
+  &:hover {
+    background: ${(props) =>
+      props.$isCompleted ? "#f5f5f5" : theme.primary[600]};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.8rem;
   }
 `;
 
@@ -1048,4 +920,172 @@ const SubmitButton = styled.button`
   }
   background: ${(props) => (props.disabled ? theme.gray : theme.primary[500])};
   cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 1rem;
+`;
+
+const LoadingTitle = styled.div`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${() => theme.primary[500]};
+`;
+
+const LoadingSubtitle = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+`;
+
+const LoadingMessage = styled.div`
+  font-size: 0.8rem;
+  color: #999;
+`;
+
+const ErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 1rem;
+`;
+
+const ErrorTitle = styled.div`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e74c3c;
+`;
+
+const ErrorMessage = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+  max-width: 400px;
+`;
+
+const ErrorCode = styled.div`
+  font-size: 0.8rem;
+  color: #999;
+`;
+
+const RetryButton = styled.button`
+  background: ${() => theme.primary[500]};
+  color: ${() => theme.white};
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+`;
+
+const OMRSpan = styled.span`
+  border-radius: 0.5rem;
+  font-weight: 600;
+  padding: 0.3rem 0.5rem;
+  color: ${() => theme.white};
+  background: ${() => theme.primary[500]};
+`;
+
+const DebugInfo = styled.div`
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  max-width: 300px;
+`;
+
+const HiddenButton = styled.div`
+  visibility: hidden;
+`;
+
+const MyExamsList = styled.div`
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const MyExamItem = styled.div`
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+`;
+
+const MyExamInfo = styled.div`
+  flex: 1;
+`;
+
+const MyExamName = styled.div`
+  font-weight: 600;
+  font-size: 1rem;
+`;
+
+const MyExamDate = styled.div`
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.3rem;
+`;
+
+const MyExamActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const DetailButton = styled.button`
+  padding: 0.3rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 0.3rem;
+  background: white;
+  color: #666;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+`;
+
+const ScoreDisplay = styled.div`
+  color: #28a745;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.3rem 0.8rem;
+  background: #e8f5e8;
+  border-radius: 0.3rem;
+  flex-shrink: 0;
+`;
+
+const NoExamsMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #666;
+  font-size: 0.9rem;
+`;
+
+const LoadingMessageContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #666;
+  font-size: 0.9rem;
 `;
