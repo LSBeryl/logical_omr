@@ -41,6 +41,9 @@ export default function EditExam() {
       answers: "",
     },
   ]);
+
+  // 선택 과목 이름 관리
+  const [selectiveNames, setSelectiveNames] = useState(["선택 과목 1"]);
   // 폼 내용 끝 //
 
   const [showModal, setShowModal] = useState(false);
@@ -166,6 +169,19 @@ export default function EditExam() {
           });
         }
         setSelectiveSubjects(newSelectiveSubjects);
+
+        // 선택 과목 이름 설정
+        if (exam.selective_name) {
+          const names = exam.selective_name.split(",");
+          setSelectiveNames(names);
+        } else {
+          // 기존 데이터에 selective_name이 없는 경우 기본값 설정
+          const defaultNames = Array.from(
+            { length: exam.selective_num },
+            (_, index) => `선택 과목 ${index + 1}`
+          );
+          setSelectiveNames(defaultNames);
+        }
       } else if (exam.has_selective) {
         // selective_num이 없지만 has_selective가 true인 경우
         setSelectiveSubjects([
@@ -174,6 +190,14 @@ export default function EditExam() {
             answers: exam.selective_answers || "",
           },
         ]);
+
+        // 선택 과목 이름 설정
+        if (exam.selective_name) {
+          const names = exam.selective_name.split(",");
+          setSelectiveNames(names);
+        } else {
+          setSelectiveNames(["선택 과목 1"]);
+        }
       } else {
         // 선택 과목이 없는 경우
         setSelectiveSubjects([
@@ -182,6 +206,7 @@ export default function EditExam() {
             answers: "",
           },
         ]);
+        setSelectiveNames(["선택 과목 1"]);
       }
 
       setLoading(false);
@@ -270,6 +295,7 @@ export default function EditExam() {
       examData.selective_answers = selectiveAnswers.join(";");
       examData.selective_types = selectiveAnswerTypesArray.join(","); // 통합된 답안 유형
       examData.selective_scores = selectiveScores || ""; // 통합된 배점
+      examData.selective_name = selectiveNames.join(","); // 선택 과목 이름들
     }
 
     try {
@@ -318,6 +344,16 @@ export default function EditExam() {
         }
       );
       setSelectiveSubjects(newSelectiveSubjects);
+
+      // 선택 과목 이름도 함께 업데이트
+      const newSelectiveNames = Array.from(
+        { length: selectiveCount },
+        (_, index) => {
+          // 기존 이름이 있으면 보존, 없으면 기본값
+          return selectiveNames[index] || `선택 과목 ${index + 1}`;
+        }
+      );
+      setSelectiveNames(newSelectiveNames);
     }
   }, [selectiveCount, hasSelective]);
 
@@ -405,6 +441,32 @@ export default function EditExam() {
               </SelectiveRange>
             </BoxRow>
           ) : null}
+
+          {/* 선택 과목 이름 입력 */}
+          {hasSelective && selectiveCount > 0 && (
+            <BoxRow>
+              <div>선택 과목 이름</div>
+              <SelectiveNamesContainer>
+                {selectiveNames.map((name, index) => (
+                  <SelectiveNameInput key={index}>
+                    <span>선택 과목 {index + 1}:</span>
+                    <input
+                      type="text"
+                      placeholder={`ex. ${
+                        index === 0 ? "미적분" : "확률과 통계"
+                      }`}
+                      value={name}
+                      onChange={(e) => {
+                        const newNames = [...selectiveNames];
+                        newNames[index] = e.target.value;
+                        setSelectiveNames(newNames);
+                      }}
+                    />
+                  </SelectiveNameInput>
+                ))}
+              </SelectiveNamesContainer>
+            </BoxRow>
+          )}
           <BoxRow>
             <div>{hasSelective ? "공통 과목 " : ""}답</div>
             <Button>
@@ -961,5 +1023,41 @@ const Submit = styled.div`
       padding: 0.8rem 1.5rem;
       font-size: 0.9rem;
     }
+  }
+`;
+
+const SelectiveNamesContainer = styled.div`
+  display: flex;
+  gap: 1rem;
+
+  @media (max-width: 1024px) {
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 928px) {
+    gap: 0.6rem;
+  }
+
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+  }
+`;
+
+const SelectiveNameInput = styled.div`
+  display: flex;
+  gap: 0.2rem;
+  align-items: center;
+  font-size: 0.9rem;
+
+  @media (max-width: 1024px) {
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 928px) {
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
   }
 `;

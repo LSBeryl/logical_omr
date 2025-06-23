@@ -139,7 +139,12 @@ function StudentContent() {
           )}
           {selectiveSubject && (
             <div>
-              선택 과목 : {selectiveSubject.replace("selective_", "선택 과목 ")}
+              선택 과목 :{" "}
+              {examData?.selective_name
+                ? examData.selective_name.split(",")[
+                    parseInt(selectiveSubject.replace("selective_", "")) - 1
+                  ] || selectiveSubject.replace("selective_", "선택 과목 ")
+                : selectiveSubject.replace("selective_", "선택 과목 ")}
             </div>
           )}
         </UserInfo>
@@ -203,7 +208,7 @@ function StudentContent() {
                                 ? `1px solid ${theme.black}`
                                 : `1px solid ${theme.primary[300]}`,
                             color:
-                              submittedAnswer === 1 ? theme.white : theme.black,
+                              submittedAnswer === 1 ? theme.black : theme.black,
                           }}
                         >
                           1
@@ -219,7 +224,7 @@ function StudentContent() {
                                 ? `1px solid ${theme.black}`
                                 : `1px solid ${theme.primary[300]}`,
                             color:
-                              submittedAnswer === 2 ? theme.white : theme.black,
+                              submittedAnswer === 2 ? theme.black : theme.black,
                           }}
                         >
                           2
@@ -235,7 +240,7 @@ function StudentContent() {
                                 ? `1px solid ${theme.black}`
                                 : `1px solid ${theme.primary[300]}`,
                             color:
-                              submittedAnswer === 3 ? theme.white : theme.black,
+                              submittedAnswer === 3 ? theme.black : theme.black,
                           }}
                         >
                           3
@@ -251,7 +256,7 @@ function StudentContent() {
                                 ? `1px solid ${theme.black}`
                                 : `1px solid ${theme.primary[300]}`,
                             color:
-                              submittedAnswer === 4 ? theme.white : theme.black,
+                              submittedAnswer === 4 ? theme.black : theme.black,
                           }}
                         >
                           4
@@ -267,7 +272,7 @@ function StudentContent() {
                                 ? `1px solid ${theme.black}`
                                 : `1px solid ${theme.primary[300]}`,
                             color:
-                              submittedAnswer === 5 ? theme.white : theme.black,
+                              submittedAnswer === 5 ? theme.black : theme.black,
                           }}
                         >
                           5
@@ -633,7 +638,12 @@ function StudentContent() {
         )}
         {selectiveSubject && (
           <div>
-            선택 과목 : {selectiveSubject.replace("selective_", "선택 과목 ")}
+            선택 과목 :{" "}
+            {examData?.selective_name
+              ? examData.selective_name.split(",")[
+                  parseInt(selectiveSubject.replace("selective_", "")) - 1
+                ] || selectiveSubject.replace("selective_", "선택 과목 ")
+              : selectiveSubject.replace("selective_", "선택 과목 ")}
           </div>
         )}
       </UserInfo>
@@ -913,106 +923,153 @@ function StudentContent() {
 }
 
 const Wrapper = styled.div`
-  @font-face {
-    font-family: "ChosunGu";
-    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff")
-      format("woff");
-    font-weight: normal;
-    font-style: normal;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  @media (max-width: 1024px) {
+    padding: 1.5rem;
+    max-width: 100%;
   }
-  &,
-  & * {
-    font-family: "ChosunGu";
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 2rem 0;
 `;
 
 const Title = styled.div`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: ${() => theme.primary[500]};
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+`;
+
+const TopButtons = styled.div`
   display: flex;
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: 1px solid ${() => theme.gray};
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
 `;
 
 const UserInfo = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid ${() => theme.gray};
+  gap: 2rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+
+  @media (max-width: 1024px) {
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
 `;
 
 const OMR = styled.div`
-  border: 2px solid ${() => theme.primary[500]};
+  border: 2px solid ${() => theme.primary[300]};
   border-radius: 0.5rem;
-  width: 200px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    border-width: 1px;
+    font-size: 0.8rem;
+  }
 `;
 
 const OMRHead = styled.div`
   display: flex;
-  &:nth-of-type(1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
-  &:nth-of-type(5n + 1) {
-    border-bottom: 1px solid ${() => theme.primary[300]};
-  }
+  background-color: ${() => theme.primary[200]};
+  font-weight: bold;
+  color: ${() => theme.primary[700]};
+
   & > div {
     text-align: center;
+    padding: 0.5rem;
+
     &:nth-of-type(1) {
       width: 55px;
       border-right: 1px solid ${() => theme.primary[300]};
-      & > div {
-        border-radius: 0.5rem 0 0 0;
-      }
     }
+
     &:nth-of-type(2) {
       flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
       & > div {
-        border-radius: 0 0.5rem 0 0;
         display: flex;
-        justify-content: space-evenly;
+        gap: 0.5rem;
+
+        @media (max-width: 768px) {
+          gap: 0.2rem;
+          font-size: 0.7rem;
+        }
       }
     }
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+
     & > div {
-      padding: 0.5rem;
-      background-color: ${() => theme.primary[100]};
+      padding: 0.3rem;
     }
   }
 `;
 
 const OMRRow = styled.div`
   display: flex;
+
   &:nth-of-type(1) {
     border-bottom: 1px solid ${() => theme.primary[300]};
   }
+
   &:nth-of-type(5n + 1) {
     border-bottom: 1px solid ${() => theme.primary[300]};
   }
+
   & > div {
     text-align: center;
+
     &:nth-of-type(1) {
       // 문제 번호
       width: 55px;
       border-right: 1px solid ${() => theme.primary[300]};
       background-color: ${() => theme.primary[100]};
     }
+
     &:nth-of-type(2) {
       // 선지 컨테이너 컨테이너
       flex-grow: 1;
       display: flex;
       align-items: center;
+
       & > div {
         // 선지 컨테이너
         flex-grow: 1;
         display: flex;
         justify-content: space-around;
+
         & > div {
           // 선지
           font-size: 0.7rem;
@@ -1022,6 +1079,7 @@ const OMRRow = styled.div`
           cursor: pointer;
         }
       }
+
       & > input {
         width: 100%;
         height: 100%;
@@ -1031,14 +1089,39 @@ const OMRRow = styled.div`
         font-size: 0.9rem;
       }
     }
+
     & > div {
       padding: 0.5rem;
     }
   }
+
   &:last-of-type {
     border-bottom: 0;
+
     & > div {
       border-bottom-left-radius: 0.5rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    & > div {
+      & > div {
+        padding: 0.3rem;
+        font-size: 0.6rem;
+      }
+
+      &:nth-of-type(2) {
+        & > div {
+          & > div {
+            padding: 0.1rem;
+            font-size: 0.6rem;
+          }
+        }
+
+        & > input {
+          font-size: 0.8rem;
+        }
+      }
     }
   }
 `;
@@ -1057,6 +1140,11 @@ const SubmitButton = styled.button`
   &:hover {
     background-color: ${() => theme.primary[600]};
   }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const AutoFillButton = styled.button`
@@ -1072,6 +1160,11 @@ const AutoFillButton = styled.button`
 
   &:hover {
     background-color: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
   }
 `;
 
@@ -1089,6 +1182,11 @@ const HomeButton = styled.button`
   &:hover {
     background-color: ${() => theme.primary[600]};
   }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const ScoreDisplay = styled.div`
@@ -1100,6 +1198,11 @@ const ScoreDisplay = styled.div`
 
   & > div {
     margin: 0.25rem 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.4rem;
+    font-size: 0.9rem;
   }
 `;
 
@@ -1141,25 +1244,48 @@ const ModalContent = styled.div`
   border-radius: 0.5rem;
   width: 300px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    width: 90%;
+    max-width: 300px;
+    padding: 1.5rem;
+  }
 `;
 
 const ModalTitle = styled.h2`
   margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+  }
 `;
 
 const ModalText = styled.p`
   margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
 `;
 
 const ModalSubText = styled.p`
   margin-bottom: 2rem;
   color: gray;
   font-size: 0.9rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+  }
 `;
 
 const ModalButtons = styled.div`
   display: flex;
   justify-content: space-around;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 `;
 
 const ModalButton = styled.button`
@@ -1176,14 +1302,11 @@ const ModalButton = styled.button`
   &:hover {
     background-color: ${() => theme.primary[600]};
   }
-`;
 
-const TopButtons = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid ${() => theme.gray};
+  @media (max-width: 768px) {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const AlreadySubmittedMessage = styled.div`
@@ -1200,6 +1323,11 @@ const AlreadySubmittedMessage = styled.div`
 
   & p {
     margin: 0.25rem 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.8rem;
+    font-size: 0.9rem;
   }
 `;
 

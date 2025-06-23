@@ -376,6 +376,10 @@ export default function Debug() {
                     {exam.selective_types || "없음"}
                   </div>
                   <div>
+                    <strong>선택과목 이름:</strong>{" "}
+                    {exam.selective_name || "없음"}
+                  </div>
+                  <div>
                     <strong>생성일:</strong>{" "}
                     {new Date(exam.created_at).toLocaleString()}
                   </div>

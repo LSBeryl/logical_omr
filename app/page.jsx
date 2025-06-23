@@ -293,6 +293,13 @@ export default function Main() {
             onKeyDown={(e) => {
               setCode((prev) => prev + e.key.toUpperCase());
             }}
+            style={{
+              borderRadius: "0.5rem",
+              fontWeight: 600,
+              padding: "0.3rem 0.5rem",
+              color: theme.white,
+              background: theme.primary[500],
+            }}
           >
             OMR
           </span>
@@ -575,6 +582,14 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 3rem 0;
+
+  @media (max-width: 1024px) {
+    padding: 2rem 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem 0;
+  }
 `;
 
 const TopBar = styled.div`
@@ -584,6 +599,14 @@ const TopBar = styled.div`
   align-items: center;
   padding: 0.5rem 2rem 0 0;
   min-height: 2rem;
+
+  @media (max-width: 1024px) {
+    padding: 0.5rem 1.5rem 0 0;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 1rem 0 0;
+  }
 `;
 
 const UserInfo = styled.div`
@@ -591,6 +614,10 @@ const UserInfo = styled.div`
   color: #444;
   opacity: 0.8;
   font-weight: 400;
+
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+  }
 `;
 
 const Title = styled.div`
@@ -600,15 +627,24 @@ const Title = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+
   & img {
     height: 8rem;
   }
-  & span {
-    border-radius: 0.5rem;
-    font-weight: 600;
-    padding: 0.3rem 0.5rem;
-    color: ${() => theme.white};
-    background: ${() => theme.primary[500]};
+
+  @media (max-width: 1024px) {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 0.3rem;
+    text-align: center;
   }
 `;
 
@@ -635,11 +671,19 @@ const ExamBox = styled.div`
   overflow-y: scroll;
   width: 500px;
   filter: ${(props) => (props.$isLoggedIn ? "none" : "blur(2px)")};
+
   @media (max-width: 1024px) {
-    width: 700px;
+    width: 90%;
+    max-width: 600px;
+    height: 350px;
+    padding: 0.8rem;
   }
+
   @media (max-width: 768px) {
-    width: 300px;
+    width: 95%;
+    max-width: 400px;
+    height: 400px;
+    padding: 0.6rem;
   }
 `;
 
@@ -648,10 +692,16 @@ const ExamBoxTitle = styled.div`
   top: 0.7rem;
   z-index: ${(props) => (props.$isLoggedIn ? "1" : "0")};
   filter: ${(props) => (props.$isLoggedIn ? "none" : "blur(2px)")};
+
   & > div {
     padding: 0 1rem;
     font-weight: 500;
     background: #fff;
+
+    @media (max-width: 768px) {
+      padding: 0 0.5rem;
+      font-size: 0.9rem;
+    }
   }
 `;
 
@@ -661,13 +711,17 @@ const ExamBoxRow = styled.div`
   align-items: center;
   padding: 1rem 0;
   border-bottom: 1px solid ${() => theme.gray};
+
   &:nth-of-type(1) {
     border-top: 1px solid ${() => theme.gray};
   }
+
   justify-content: space-between;
+
   & > div {
     font-size: 0.9rem;
     font-weight: 600;
+
     &:nth-of-type(2) {
       border-radius: 0.5rem;
       font-size: 0.8rem;
@@ -676,10 +730,24 @@ const ExamBoxRow = styled.div`
       color: #fff;
       background: #082870;
       cursor: pointer;
+
       &:hover {
         background: #3650a6;
       }
+
+      @media (max-width: 768px) {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.4rem;
+      }
     }
+
+    @media (max-width: 768px) {
+      font-size: 0.8rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.8rem 0;
   }
 `;
 
@@ -724,8 +792,15 @@ const LoginButton = styled.button`
   cursor: pointer;
   margin-right: 1rem;
   font-weight: 600;
+
   &:hover {
     background: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
   }
 `;
 
@@ -737,8 +812,14 @@ const SignupButton = styled.button`
   border-radius: 0.5rem;
   cursor: pointer;
   font-weight: 600;
+
   &:hover {
     background: #f5f5f5;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
   }
 `;
 
@@ -753,6 +834,11 @@ const LogoutButton = styled.button`
   margin-top: 0.5rem;
   font-size: 0.8rem;
   font-weight: 500;
+
+  @media (max-width: 768px) {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+  }
 `;
 
 const DebugButton = styled.button`
@@ -765,8 +851,14 @@ const DebugButton = styled.button`
   margin-top: 0.5rem;
   font-size: 0.8rem;
   font-weight: 500;
+
   &:hover {
     background: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
   }
 `;
 
@@ -781,8 +873,15 @@ const TeacherButton = styled.button`
   font-size: 0.8rem;
   font-weight: 500;
   margin-bottom: 1rem;
+
   &:hover {
     background: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.8rem;
   }
 `;
 
@@ -796,8 +895,14 @@ const MyExamsButton = styled.button`
   margin-top: 0.5rem;
   font-size: 0.8rem;
   font-weight: 500;
+
   &:hover {
     background: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
   }
 `;
 
@@ -820,6 +925,19 @@ const Modal = styled.div`
   border-radius: 0.5rem;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 500px;
+
+  @media (max-width: 1024px) {
+    width: 90%;
+    max-width: 500px;
+    padding: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    width: 95%;
+    max-width: 400px;
+    padding: 1rem;
+    margin: 1rem;
+  }
 `;
 
 const ModalTitle = styled.h2`
@@ -827,6 +945,11 @@ const ModalTitle = styled.h2`
   font-weight: 800;
   color: ${() => theme.primary[500]};
   margin-bottom: 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
 `;
 
 const ModalContent = styled.div`
@@ -834,18 +957,38 @@ const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+
   & > div {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+
     & > span {
       font-weight: 600;
     }
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.3rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    gap: 0.8rem;
   }
 `;
 
 const SelectContainer = styled.div`
   margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
 `;
 
 const SelectButton = styled.button`
@@ -856,16 +999,29 @@ const SelectButton = styled.button`
   border-radius: 0.5rem;
   cursor: pointer;
   margin-right: 0.5rem;
+
   &:hover {
     background: ${() => theme.primary[100]};
   }
+
   background: ${(props) =>
     props.$isSelected ? theme.primary[100] : theme.white};
+
+  @media (max-width: 768px) {
+    margin-right: 0;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
 `;
 
 const ModalButtons = styled.div`
   display: flex;
   justify-content: space-between;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 `;
 
 const CancelButton = styled.button`

@@ -109,6 +109,42 @@ export default function ExamHistory() {
     setSubmits([]);
   };
 
+  // 점수 기준 순위 계산 함수
+  const calculateRankings = (submits) => {
+    // 점수가 있는 제출만 필터링하고 점수 기준으로 정렬
+    const validSubmits = submits
+      .filter((submit) => submit.score !== null)
+      .sort((a, b) => b.score - a.score);
+
+    const rankings = [];
+    let currentRank = 1;
+    let currentScore = null;
+    let sameScoreCount = 0;
+
+    validSubmits.forEach((submit, index) => {
+      if (submit.score !== currentScore) {
+        // 새로운 점수인 경우
+        currentRank = index + 1;
+        currentScore = submit.score;
+        sameScoreCount = 1;
+      } else {
+        // 같은 점수인 경우
+        sameScoreCount++;
+      }
+
+      rankings.push({
+        ...submit,
+        rank: sameScoreCount > 1 ? `${currentRank} (공동)` : currentRank,
+        displayRank: currentRank,
+        isTied: sameScoreCount > 1,
+      });
+    });
+
+    return rankings;
+  };
+
+  const rankings = calculateRankings(submits);
+
   if (loading) return <div>로딩 중...</div>;
   if (!currentUser) return <div>접근 권한이 없습니다.</div>;
 
@@ -161,126 +197,190 @@ export default function ExamHistory() {
           {submits.length === 0 ? (
             <NoDataMessage>아직 제출된 답안이 없습니다.</NoDataMessage>
           ) : (
-            <SubmitList>
-              {submits.map((submit, index) => (
-                <SubmitItem key={index}>
-                  <BoxHeader>
-                    {submit.User?.name ? (
-                      <span>
-                        <strong>{submit.User.name}</strong>
-                        {submit.User.user_name && (
-                          <span style={{ color: "#888", marginLeft: 4 }}>
-                            ({submit.User.user_name})
-                          </span>
+            <>
+              {/* 순위 테이블 */}
+              {rankings.length > 0 && (
+                <RankingTable>
+                  <RankingHeader>
+                    <RankingTitle>순위표</RankingTitle>
+                  </RankingHeader>
+                  <RankingContent>
+                    <RankingRow $isHeader>
+                      <RankingCell $isRank>순위</RankingCell>
+                      <RankingCell $isName>학생명</RankingCell>
+                      <RankingCell $isScore>점수</RankingCell>
+                      <RankingCell $isCorrect>정답</RankingCell>
+                    </RankingRow>
+                    {rankings.map((ranking, index) => (
+                      <RankingRow key={index} $isTied={ranking.isTied}>
+                        <RankingCell $isRank>
+                          {String(ranking.rank).includes("공동")
+                            ? String(ranking.rank).replace(
+                                "(공동)",
+                                "위 (공동)"
+                              )
+                            : `${ranking.rank}위`}
+                        </RankingCell>
+                        <RankingCell $isName>
+                          {ranking.User?.name || "알 수 없음"}
+                          {ranking.User?.user_name && (
+                            <span style={{ color: "#888", marginLeft: 4 }}>
+                              ({ranking.User.user_name})
+                            </span>
+                          )}
+                        </RankingCell>
+                        <RankingCell $isScore>{ranking.score}점</RankingCell>
+                        <RankingCell $isCorrect>
+                          {ranking.correct_count}개
+                        </RankingCell>
+                      </RankingRow>
+                    ))}
+                  </RankingContent>
+                </RankingTable>
+              )}
+
+              {/* 학생별 상세 정보 */}
+              <SubmitList>
+                {rankings.map((submit, index) => (
+                  <SubmitItem key={index}>
+                    <BoxHeader>
+                      <RankBadge
+                        $rank={submit.displayRank}
+                        $isTied={submit.isTied}
+                      >
+                        {String(submit.rank).includes("공동")
+                          ? String(submit.rank).replace("(공동)", "위 (공동)")
+                          : `${submit.rank}위`}
+                      </RankBadge>
+                      {submit.User?.name ? (
+                        <span>
+                          <strong>{submit.User.name}</strong>
+                          {submit.User.user_name && (
+                            <span style={{ color: "#888", marginLeft: 4 }}>
+                              ({submit.User.user_name})
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span>알 수 없음</span>
+                      )}
+                    </BoxHeader>
+                    <SubmitContent>
+                      <StudentInfo>
+                        <div>
+                          <strong>학생 이름:</strong>{" "}
+                          {submit.User?.name || "알 수 없음"}
+                        </div>
+                        <div>
+                          <strong>사용자명:</strong>{" "}
+                          {submit.User?.user_name || "알 수 없음"}
+                        </div>
+                        <div>
+                          <strong>제출 시각:</strong>{" "}
+                          {new Date(submit.submitted_at).toLocaleString()}
+                        </div>
+                      </StudentInfo>
+                      <AnswerInfo>
+                        <div>
+                          <strong>제출된 답안:</strong>{" "}
+                          {submit.submitted_answer || "없음"}
+                        </div>
+                        {selectedExam.has_selective && (
+                          <div>
+                            <strong>선택한 선택과목:</strong>{" "}
+                            {submit.selected_selective_num
+                              ? (() => {
+                                  const selectiveName =
+                                    selectedExam.selective_name
+                                      ? selectedExam.selective_name.split(",")[
+                                          submit.selected_selective_num - 1
+                                        ]
+                                      : null;
+                                  return (
+                                    selectiveName ||
+                                    `선택 과목 ${submit.selected_selective_num}`
+                                  );
+                                })()
+                              : "선택하지 않음"}
+                          </div>
                         )}
-                      </span>
-                    ) : (
-                      <span>알 수 없음</span>
-                    )}
-                  </BoxHeader>
-                  <SubmitContent>
-                    <StudentInfo>
-                      <div>
-                        <strong>학생 이름:</strong>{" "}
-                        {submit.User?.name || "알 수 없음"}
-                      </div>
-                      <div>
-                        <strong>사용자명:</strong>{" "}
-                        {submit.User?.user_name || "알 수 없음"}
-                      </div>
-                      <div>
-                        <strong>제출 시각:</strong>{" "}
-                        {new Date(submit.submitted_at).toLocaleString()}
-                      </div>
-                    </StudentInfo>
-                    <AnswerInfo>
-                      <div>
-                        <strong>제출된 답안:</strong>{" "}
-                        {submit.submitted_answer || "없음"}
-                      </div>
-                      {selectedExam.has_selective && (
                         <div>
-                          <strong>선택한 선택과목:</strong>{" "}
-                          {submit.selected_selective_num
-                            ? `선택 과목 ${submit.selected_selective_num}`
-                            : "선택하지 않음"}
+                          <strong>점수:</strong>{" "}
+                          {submit.score !== null
+                            ? `${submit.score}점`
+                            : "채점 안됨"}
                         </div>
-                      )}
-                      <div>
-                        <strong>점수:</strong>{" "}
-                        {submit.score !== null
-                          ? `${submit.score}점`
-                          : "채점 안됨"}
-                      </div>
-                      <div>
-                        <strong>총점:</strong>{" "}
-                        {submit.score !== null && submit.correct_count !== null
-                          ? (() => {
-                              let totalScore = 0;
+                        <div>
+                          <strong>총점:</strong>{" "}
+                          {submit.score !== null &&
+                          submit.correct_count !== null
+                            ? (() => {
+                                let totalScore = 0;
 
-                              // 공통과목 배점 계산
-                              if (submit.Exam?.answer_scores) {
-                                totalScore += submit.Exam.answer_scores
-                                  .split(",")
-                                  .reduce(
-                                    (sum, score) =>
-                                      sum + (parseInt(score) || 1),
-                                    0
-                                  );
-                              } else {
-                                // 배점이 없으면 공통과목 문제 수만큼 (1점씩)
-                                const commonQuestionCount =
+                                // 공통과목 배점 계산
+                                if (submit.Exam?.answer_scores) {
+                                  totalScore += submit.Exam.answer_scores
+                                    .split(",")
+                                    .reduce(
+                                      (sum, score) =>
+                                        sum + (parseInt(score) || 1),
+                                      0
+                                    );
+                                } else {
+                                  // 배점이 없으면 공통과목 문제 수만큼 (1점씩)
+                                  const commonQuestionCount =
+                                    submit.Exam?.has_selective &&
+                                    submit.Exam?.selective_range
+                                      ? (() => {
+                                          const [start, end] =
+                                            submit.Exam.selective_range
+                                              .split("-")
+                                              .map(Number);
+                                          return (
+                                            submit.Exam.question_num -
+                                            (end - start + 1)
+                                          );
+                                        })()
+                                      : submit.Exam?.question_num || 0;
+                                  totalScore += commonQuestionCount;
+                                }
+
+                                // 선택과목이 있는 경우 선택과목 배점 추가
+                                if (
                                   submit.Exam?.has_selective &&
-                                  submit.Exam?.selective_range
-                                    ? (() => {
-                                        const [start, end] =
-                                          submit.Exam.selective_range
-                                            .split("-")
-                                            .map(Number);
-                                        return (
-                                          submit.Exam.question_num -
-                                          (end - start + 1)
-                                        );
-                                      })()
-                                    : submit.Exam?.question_num || 0;
-                                totalScore += commonQuestionCount;
-                              }
+                                  submit.Exam?.selective_scores
+                                ) {
+                                  totalScore += submit.Exam.selective_scores
+                                    .split(",")
+                                    .reduce(
+                                      (sum, score) =>
+                                        sum + (parseInt(score) || 1),
+                                      0
+                                    );
+                                }
 
-                              // 선택과목이 있는 경우 선택과목 배점 추가
-                              if (
-                                submit.Exam?.has_selective &&
-                                submit.Exam?.selective_scores
-                              ) {
-                                totalScore += submit.Exam.selective_scores
-                                  .split(",")
-                                  .reduce(
-                                    (sum, score) =>
-                                      sum + (parseInt(score) || 1),
-                                    0
-                                  );
-                              }
-
-                              return `${totalScore}점`;
-                            })()
-                          : "채점 안됨"}
-                      </div>
-                      <div>
-                        <strong>맞힌 개수:</strong>{" "}
-                        {submit.correct_count !== null
-                          ? `${submit.correct_count}개`
-                          : "채점 안됨"}
-                      </div>
-                      {submit.wrong_questions && (
-                        <div>
-                          <strong>틀린 문제:</strong>{" "}
-                          {submit.wrong_questions || "없음"}
+                                return `${totalScore}점`;
+                              })()
+                            : "채점 안됨"}
                         </div>
-                      )}
-                    </AnswerInfo>
-                  </SubmitContent>
-                </SubmitItem>
-              ))}
-            </SubmitList>
+                        <div>
+                          <strong>맞힌 개수:</strong>{" "}
+                          {submit.correct_count !== null
+                            ? `${submit.correct_count}개`
+                            : "채점 안됨"}
+                        </div>
+                        {submit.wrong_questions && (
+                          <div>
+                            <strong>틀린 문제:</strong>{" "}
+                            {submit.wrong_questions || "없음"}
+                          </div>
+                        )}
+                      </AnswerInfo>
+                    </SubmitContent>
+                  </SubmitItem>
+                ))}
+              </SubmitList>
+            </>
           )}
         </SubmitSection>
       )}
@@ -673,6 +773,9 @@ const SubmitItem = styled.div`
 `;
 
 const BoxHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
   font-size: 0.9rem;
   color: #666;
@@ -766,4 +869,121 @@ const AnswerInfo = styled.div`
       gap: 0.2rem;
     }
   }
+`;
+
+const RankingTable = styled.div`
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  background: #f8f9fa;
+
+  @media (max-width: 1024px) {
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+`;
+
+const RankingHeader = styled.div`
+  margin-bottom: 1rem;
+`;
+
+const RankingTitle = styled.h3`
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${() => theme.primary[500]};
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+  }
+`;
+
+const RankingContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    gap: 0.3rem;
+  }
+`;
+
+const RankingRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: ${({ $isHeader }) => ($isHeader ? theme.primary[100] : "white")};
+  border-radius: 0.25rem;
+  border: ${({ $isTied, $isHeader }) =>
+    $isHeader
+      ? "1px solid #ccc"
+      : $isTied
+      ? "1px dashed #ccc"
+      : "1px solid #eee"};
+  font-weight: ${({ $isHeader }) => ($isHeader ? "600" : "normal")};
+
+  @media (max-width: 1024px) {
+    padding: 0.6rem;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    padding: 0.5rem;
+  }
+`;
+
+const RankingCell = styled.div`
+  flex: ${({ $isRank, $isName }) =>
+    $isRank ? "0 0 60px" : $isName ? "1" : "0 0 80px"};
+  font-weight: ${({ $isRank }) => ($isRank ? "600" : "normal")};
+  color: ${({ $isRank }) => ($isRank ? theme.primary[500] : "#666")};
+  text-align: ${({ $isRank, $isScore, $isCorrect }) =>
+    $isRank || $isScore || $isCorrect ? "center" : "left"};
+
+  @media (max-width: 1024px) {
+    flex: ${({ $isRank, $isName }) =>
+      $isRank ? "0 0 50px" : $isName ? "1" : "0 0 70px"};
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    flex: none;
+    width: 100%;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+`;
+
+const RankBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: ${({ $rank, $isTied }) =>
+    $isTied
+      ? "#ffd700"
+      : $rank === 1
+      ? "#ffd700"
+      : $rank === 2
+      ? "#c0c0c0"
+      : $rank === 3
+      ? "#cd7f32"
+      : "#e9ecef"};
+  color: ${({ $rank, $isTied }) => ($isTied || $rank <= 3 ? "#000" : "#666")};
+  border: ${({ $isTied }) => ($isTied ? "1px solid #ffc107" : "none")};
 `;

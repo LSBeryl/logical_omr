@@ -299,6 +299,22 @@ function DetailedExamContent() {
               {submitData &&
                 new Date(submitData.submitted_at).toLocaleDateString()}
             </div>
+            {submitData?.selected_selective_num && (
+              <div
+                style={{
+                  color: "#666",
+                  fontSize: "0.9rem",
+                  marginTop: "0.3rem",
+                }}
+              >
+                선택 과목:{" "}
+                {examData?.selective_name
+                  ? examData.selective_name.split(",")[
+                      submitData.selected_selective_num - 1
+                    ] || `선택 과목 ${submitData.selected_selective_num}`
+                  : `선택 과목 ${submitData.selected_selective_num}`}
+              </div>
+            )}
           </div>
           <div style={{ textAlign: "right" }}>
             <div
@@ -370,7 +386,8 @@ function DetailedExamContent() {
                             studentAnswer === option
                               ? `1px solid ${theme.black}`
                               : `1px solid ${theme.primary[300]}`,
-                          color: studentAnswer === option ? "black" : "black",
+                          color:
+                            studentAnswer === option ? theme.black : "black",
                         }}
                       >
                         {option}

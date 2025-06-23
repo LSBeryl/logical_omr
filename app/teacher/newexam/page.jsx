@@ -8,6 +8,7 @@ import { useEffect, useState, Fragment } from "react";
 import supabase from "../../supabase";
 import TeacherNewExamModal from "../../components/TeacherNewExamModal";
 import ExamSummaryModal from "../../components/ExamSummaryModal";
+import { useRouter } from "next/navigation";
 
 export default function NewExam() {
   // 폼 내용 시작 //
@@ -37,11 +38,16 @@ export default function NewExam() {
       answers: "",
     },
   ]);
+
+  // 선택 과목 이름 관리
+  const [selectiveNames, setSelectiveNames] = useState(["선택 과목 1"]);
   // 폼 내용 끝 //
 
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [showSummary, setShowSummary] = useState(false);
+
+  const router = useRouter();
 
   async function doAddNewExam() {
     // 폼 검증 (기존 + 모든 답 입력 여부 추가)
@@ -181,6 +187,7 @@ export default function NewExam() {
       examData.selective_answers = selectiveAnswers.join(";");
       examData.selective_types = selectiveAnswerTypesArray.join(","); // 통합된 답안 유형
       examData.selective_scores = selectiveScores || ""; // 통합된 배점
+      examData.selective_name = selectiveNames.join(","); // 선택 과목 이름들
     }
 
     try {
@@ -215,6 +222,7 @@ export default function NewExam() {
           answers: "",
         },
       ]);
+      setSelectiveNames(["선택 과목 1"]);
     } catch (error) {
       console.error("Error:", error);
       alert("시험 등록 중 오류가 발생했습니다.");
@@ -224,7 +232,7 @@ export default function NewExam() {
   // 프리셋 데이터 설정 함수
   const applyMockExamPreset = () => {
     // 기본 설정
-    setExamName("20XX년 XX월 XX일 실전 모의고사");
+    setExamName("20XX년 XX월 XX일 실전 모의고사 (날짜 바꿔주세요)");
     setExamNum(30);
     setHasSelective(true);
     setSelectiveCount(2);
@@ -255,6 +263,9 @@ export default function NewExam() {
 
     // 선택 과목 문제 개수 설정
     setSelectiveNum(8);
+
+    // 선택 과목 이름 설정
+    setSelectiveNames(["미적분", "확률과 통계"]);
 
     alert("모의고사 프리셋이 적용되었습니다!");
   };
@@ -314,6 +325,9 @@ export default function NewExam() {
       },
     ]);
 
+    // 선택 과목 이름 설정
+    setSelectiveNames(["미적분", "확률과 통계"]);
+
     alert("테스트 시험 프리셋이 적용되었습니다! (모든 답: 1)");
   };
 
@@ -343,6 +357,16 @@ export default function NewExam() {
         }
       );
       setSelectiveSubjects(newSelectiveSubjects);
+
+      // 선택 과목 이름도 함께 업데이트
+      const newSelectiveNames = Array.from(
+        { length: selectiveCount },
+        (_, index) => {
+          // 기존 이름이 있으면 보존, 없으면 기본값
+          return selectiveNames[index] || `선택 과목 ${index + 1}`;
+        }
+      );
+      setSelectiveNames(newSelectiveNames);
     }
   }, [selectiveCount, hasSelective]);
 
@@ -359,7 +383,12 @@ export default function NewExam() {
 
   return (
     <Wrapper>
-      <Title>신규 시험 등록</Title>
+      <Header>
+        <Title>신규 시험 등록</Title>
+        <HeaderRight>
+          <HomeButton onClick={() => router.push("/")}>홈으로</HomeButton>
+        </HeaderRight>
+      </Header>
       <BoxContainer>
         <Box>
           <BoxRow>
@@ -375,7 +404,9 @@ export default function NewExam() {
             <div>프리셋</div>
             <PresetButton>
               <span onClick={applyMockExamPreset}>모의고사 프리셋 적용</span>
-              <span onClick={applyTestExamPreset}>테스트 시험 프리셋 적용</span>
+              <span onClick={applyTestExamPreset}>
+                테스트 시험 프리셋 적용 (개발용)
+              </span>
             </PresetButton>
           </BoxRow>
           <BoxRow length="short">
@@ -445,6 +476,32 @@ export default function NewExam() {
               </SelectiveRange>
             </BoxRow>
           ) : null}
+
+          {/* 선택 과목 이름 입력 */}
+          {hasSelective && selectiveCount > 0 && (
+            <BoxRow>
+              <div>선택 과목 이름</div>
+              <SelectiveNamesContainer>
+                {selectiveNames.map((name, index) => (
+                  <SelectiveNameInput key={index}>
+                    <span>선택 과목 {index + 1}:</span>
+                    <StyledInput
+                      type="text"
+                      placeholder={`ex. ${
+                        index === 0 ? "미적분" : "확률과 통계"
+                      }`}
+                      value={name}
+                      onChange={(e) => {
+                        const newNames = [...selectiveNames];
+                        newNames[index] = e.target.value;
+                        setSelectiveNames(newNames);
+                      }}
+                    />
+                  </SelectiveNameInput>
+                ))}
+              </SelectiveNamesContainer>
+            </BoxRow>
+          )}
           <BoxRow>
             <div>{hasSelective ? "공통 과목 " : ""}답</div>
             <Button>
@@ -684,13 +741,16 @@ export default function NewExam() {
 }
 
 const Wrapper = styled.div`
-  padding: 1rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 
   @media (max-width: 1024px) {
     padding: 1.5rem;
+    max-width: 100%;
   }
 
   @media (max-width: 928px) {
@@ -698,29 +758,94 @@ const Wrapper = styled.div`
   }
 
   @media (max-width: 768px) {
-    padding: 0.5rem;
+    padding: 1rem;
   }
 `;
 
-const Title = styled.div`
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid ${() => theme.primary[500]};
+
+  @media (max-width: 1024px) {
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 928px) {
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: stretch;
+    margin-bottom: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+    margin-bottom: 1rem;
+  }
+`;
+
+const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  text-align: center;
-  margin-bottom: 1rem;
+  color: ${() => theme.primary[500]};
 
   @media (max-width: 1024px) {
     font-size: 1.8rem;
-    margin-bottom: 0.8rem;
   }
 
   @media (max-width: 928px) {
     font-size: 1.6rem;
-    margin-bottom: 0.7rem;
+    text-align: center;
   }
 
   @media (max-width: 768px) {
     font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  gap: 0.5rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+`;
+
+const HomeButton = styled.button`
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  background: white;
+  color: ${() => theme.primary[500]};
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f0f0f0;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 0.7rem 1.3rem;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
   }
 `;
 
@@ -791,34 +916,8 @@ const Box = styled.div`
       }
     }
   }
-`;
 
-const BoxRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 1rem;
-
-  & > div {
-    font-weight: 500;
-    &:nth-of-type(1) {
-      font-weight: 600;
-
-      @media (max-width: 1024px) {
-        font-size: 0.95rem;
-      }
-
-      @media (max-width: 928px) {
-        font-size: 0.9rem;
-      }
-
-      @media (max-width: 768px) {
-        font-size: 0.9rem;
-      }
-    }
-  }
-
-  & > input {
+  & input {
     ${({ length }) =>
       length === "short"
         ? css`
@@ -830,7 +929,7 @@ const BoxRow = styled.div`
               width: 45%;
             }
             @media (max-width: 768px) {
-              width: 50%;
+              width: 60%;
             }
           `
         : null}
@@ -855,6 +954,37 @@ const BoxRow = styled.div`
       padding: 0.5rem 0.6rem;
       font-size: 0.8rem;
     }
+  }
+`;
+
+const BoxRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+
+  & > div {
+    font-weight: 500;
+
+    &:nth-of-type(1) {
+      font-weight: 600;
+
+      @media (max-width: 1024px) {
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 928px) {
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    gap: 0.8rem;
   }
 `;
 
@@ -1058,5 +1188,49 @@ const PresetButton = styled(Button)`
       text-align: center;
       width: 100%;
     }
+  }
+`;
+
+const SelectiveNamesContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const SelectiveNameInput = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  & > span {
+    flex-shrink: 0;
+    min-width: 80px;
+    font-weight: 500;
+  }
+`;
+
+const StyledInput = styled.input`
+  border: 1px solid ${() => theme.gray};
+  outline: none;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+
+  @media (max-width: 1024px) {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
   }
 `;

@@ -6,6 +6,7 @@ import theme from "../../style/theme";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "../../supabase";
+import StudentOMRModal from "../../components/StudentOMRModal";
 
 export default function StudentHistory() {
   const [students, setStudents] = useState([]);
@@ -13,6 +14,8 @@ export default function StudentHistory() {
   const [submits, setSubmits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [showOMRModal, setShowOMRModal] = useState(false);
+  const [selectedSubmit, setSelectedSubmit] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -85,14 +88,88 @@ export default function StudentHistory() {
         .select(
           `
           *,
-          Exam:exam_id(name, question_num, has_selective, selective_num, answer_scores, selective_scores, selective_range)
+          Exam:exam_id(
+            name, 
+            question_num, 
+            has_selective, 
+            selective_num, 
+            answer_scores, 
+            selective_scores, 
+            selective_range, 
+            selective_name,
+            answer_types,
+            selective_types,
+            answers,
+            selective_answers
+          )
         `
         )
         .eq("submitter_id", studentId)
         .order("submitted_at", { ascending: false });
 
       if (!error) {
-        setSubmits(data || []);
+        // 각 시험별로 순위 정보를 가져오기
+        const submitsWithRankings = await Promise.all(
+          (data || []).map(async (submit) => {
+            if (submit.score !== null) {
+              // 해당 시험의 모든 제출을 가져와서 순위 계산
+              const { data: examSubmits, error: examSubmitsError } =
+                await supabase
+                  .from("Submit")
+                  .select(
+                    `
+                  *,
+                  User:submitter_id(user_name, name, role)
+                `
+                  )
+                  .eq("exam_id", submit.exam_id)
+                  .neq("User.user_name", "LSBeryl2")
+                  .not("score", "is", null);
+
+              if (!examSubmitsError && examSubmits) {
+                // 점수 기준으로 정렬
+                const sortedSubmits = examSubmits.sort(
+                  (a, b) => b.score - a.score
+                );
+
+                // 순위 계산
+                let rank = 1;
+                let sameScoreCount = 0;
+                let currentScore = null;
+
+                for (let i = 0; i < sortedSubmits.length; i++) {
+                  if (sortedSubmits[i].score !== currentScore) {
+                    rank = i + 1;
+                    currentScore = sortedSubmits[i].score;
+                    sameScoreCount = 1;
+                  } else {
+                    sameScoreCount++;
+                  }
+
+                  if (sortedSubmits[i].submitter_id === studentId) {
+                    return {
+                      ...submit,
+                      rank: sameScoreCount > 1 ? `${rank} (공동)` : rank,
+                      displayRank: rank,
+                      isTied: sameScoreCount > 1,
+                      totalParticipants: sortedSubmits.length,
+                    };
+                  }
+                }
+              }
+            }
+
+            return {
+              ...submit,
+              rank: null,
+              displayRank: null,
+              isTied: false,
+              totalParticipants: 0,
+            };
+          })
+        );
+
+        setSubmits(submitsWithRankings);
       }
     } catch (err) {
       console.error("Student submits fetch error:", err);
@@ -107,6 +184,16 @@ export default function StudentHistory() {
   const goBack = () => {
     setSelectedStudent(null);
     setSubmits([]);
+  };
+
+  const openOMRModal = (submit) => {
+    setSelectedSubmit(submit);
+    setShowOMRModal(true);
+  };
+
+  const closeOMRModal = () => {
+    setShowOMRModal(false);
+    setSelectedSubmit(null);
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -159,7 +246,29 @@ export default function StudentHistory() {
             <SubmitList>
               {submits.map((submit, index) => (
                 <SubmitItem key={index}>
-                  <ExamTitle>{submit.Exam?.name || "알 수 없음"}</ExamTitle>
+                  <SubmitHeader>
+                    <ExamTitle>{submit.Exam?.name || "알 수 없음"}</ExamTitle>
+                    <HeaderRight>
+                      {submit.rank && (
+                        <RankBadge
+                          $rank={submit.displayRank}
+                          $isTied={submit.isTied}
+                        >
+                          {String(submit.rank).includes("공동")
+                            ? String(submit.rank).replace("(공동)", "위 (공동)")
+                            : `${submit.rank}위`}
+                        </RankBadge>
+                      )}
+                      <OMRButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openOMRModal(submit);
+                        }}
+                      >
+                        OMR로 보기
+                      </OMRButton>
+                    </HeaderRight>
+                  </SubmitHeader>
                   <SubmitContent>
                     <ExamInfo>
                       <div>
@@ -174,6 +283,12 @@ export default function StudentHistory() {
                         <strong>제출 시각:</strong>{" "}
                         {new Date(submit.submitted_at).toLocaleString()}
                       </div>
+                      {submit.rank && (
+                        <div>
+                          <strong>순위:</strong> {submit.rank} /{" "}
+                          {submit.totalParticipants}명
+                        </div>
+                      )}
                     </ExamInfo>
                     <AnswerInfo>
                       <div>
@@ -184,7 +299,22 @@ export default function StudentHistory() {
                         <div>
                           <strong>선택한 선택과목:</strong>{" "}
                           {submit.selected_selective_num
-                            ? `선택 과목 ${submit.selected_selective_num}`
+                            ? (() => {
+                                const selectiveName = submit.Exam
+                                  ?.selective_name
+                                  ? submit.Exam.selective_name.split(",")[
+                                      submit.selected_selective_num - 1
+                                    ]
+                                  : null;
+                                console.log(
+                                  submit.Exam,
+                                  submit.selected_selective_num
+                                );
+                                return (
+                                  selectiveName ||
+                                  `선택 과목 ${submit.selected_selective_num}`
+                                );
+                              })()
                             : "선택하지 않음"}
                         </div>
                       )}
@@ -266,6 +396,14 @@ export default function StudentHistory() {
           )}
         </SubmitSection>
       )}
+
+      {/* OMR 모달 */}
+      <StudentOMRModal
+        open={showOMRModal}
+        onClose={closeOMRModal}
+        submit={selectedSubmit}
+        student={selectedStudent}
+      />
     </Wrapper>
   );
 }
@@ -338,14 +476,12 @@ const Title = styled.h1`
 
 const HeaderRight = styled.div`
   display: flex;
-  gap: 1rem;
-
-  @media (max-width: 928px) {
-    justify-content: center;
-  }
+  align-items: center;
+  gap: 0.5rem;
 
   @media (max-width: 768px) {
-    justify-content: center;
+    width: 100%;
+    justify-content: space-between;
   }
 `;
 
@@ -654,6 +790,19 @@ const SubmitItem = styled.div`
   }
 `;
 
+const SubmitHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+`;
+
 const SubmitContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -737,7 +886,6 @@ const ExamTitle = styled.div`
   font-size: 1.05rem;
   font-weight: 700;
   color: ${() => theme.primary[500]};
-  margin-bottom: 0.5rem;
 
   @media (max-width: 1024px) {
     font-size: 1rem;
@@ -749,5 +897,67 @@ const ExamTitle = styled.div`
 
   @media (max-width: 768px) {
     font-size: 0.95rem;
+  }
+`;
+
+const OMRButton = styled.button`
+  padding: 0.75rem 1.5rem;
+  border: 1px solid ${() => theme.primary[500]};
+  border-radius: 0.5rem;
+  background: ${() => theme.primary[500]};
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background: ${() => theme.primary[600]};
+  }
+
+  @media (max-width: 1024px) {
+    padding: 0.7rem 1.3rem;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 928px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+`;
+
+const RankBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: ${({ $rank, $isTied }) =>
+    $isTied
+      ? "#ffd700"
+      : $rank === 1
+      ? "#ffd700"
+      : $rank === 2
+      ? "#c0c0c0"
+      : $rank === 3
+      ? "#cd7f32"
+      : "#e9ecef"};
+  color: ${({ $rank, $isTied }) => ($isTied || $rank <= 3 ? "#000" : "#666")};
+  border: ${({ $isTied }) => ($isTied ? "1px solid #ffc107" : "none")};
+  margin-right: 0.5rem;
+
+  @media (max-width: 768px) {
+    min-width: 1.8rem;
+    height: 1.3rem;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.7rem;
   }
 `;
