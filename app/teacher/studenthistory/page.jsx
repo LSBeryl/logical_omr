@@ -219,9 +219,12 @@ export default function StudentHistory() {
                   <StudentContent>
                     <StudentName>{student.name}</StudentName>
                     <StudentDetails>
-                      <div>사용자명 : {student.user_name}</div>
+                      <div>
+                        {student.school} {student.grade}학년
+                      </div>
+                      {/* <div>사용자명 : {student.user_name}</div>
                       <div>학교 : {student.school || "없음"}</div>
-                      <div>학년 : {student.grade || "없음"}</div>
+                      <div>학년 : {student.grade || "없음"}</div> */}
                     </StudentDetails>
                   </StudentContent>
                   <ViewButton>제출 현황 보기</ViewButton>
