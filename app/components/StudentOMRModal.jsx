@@ -419,7 +419,7 @@ const OMRRow = styled.div`
         outline: none;
         text-align: center;
         font-size: 0.9rem;
-        padding: 0.5rem;
+        padding: 0.15rem;
         border-radius: 0.25rem;
       }
     }

@@ -355,7 +355,7 @@ function StudentContent() {
                       </div>
                     ) : (
                       // 주관식
-                      <div style={{ padding: "0.2rem" }}>
+                      <div>
                         <input
                           type="number"
                           value={submittedAnswers[questionNumber] || ""}
@@ -395,7 +395,7 @@ function StudentContent() {
                             outline: "none",
                             textAlign: "center",
                             fontSize: "0.9rem",
-                            padding: "0.5rem",
+                            padding: "0.15rem",
                             borderRadius: "0.25rem",
                           }}
                         />
@@ -859,7 +859,7 @@ function StudentContent() {
                     </div>
                   ) : (
                     // 주관식
-                    <div style={{ padding: "0.2rem" }}>
+                    <div>
                       <input
                         type="number"
                         value={answers[questionNumber] || ""}
@@ -899,7 +899,7 @@ function StudentContent() {
                           outline: "none",
                           textAlign: "center",
                           fontSize: "0.9rem",
-                          padding: "0.5rem",
+                          padding: "0.15rem",
                           borderRadius: "0.25rem",
                         }}
                       />
@@ -1057,7 +1057,7 @@ const OMRRow = styled.div`
       flex-grow: 1;
       display: flex;
       align-items: center;
-      padding: 0.2rem;
+      padding: 0.5rem;
       & > div {
         // 선지 컨테이너
         flex-grow: 1;
@@ -1079,7 +1079,7 @@ const OMRRow = styled.div`
         outline: none;
         text-align: center;
         font-size: 0.9rem;
-        padding: 0.5rem;
+        padding: 0.15rem;
         border-radius: 0.25rem;
       }
     }
