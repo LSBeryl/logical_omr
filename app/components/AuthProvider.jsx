@@ -129,6 +129,26 @@ export function AuthProvider({ children }) {
         setError(null);
         // 캐시 정리
         clearUserDataCache();
+
+        // 로컬스토리지 정리
+        try {
+          const supabaseKey =
+            "sb-" +
+            process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1]?.split(
+              "."
+            )[0] +
+            "-auth-token";
+          localStorage.removeItem(supabaseKey);
+          localStorage.removeItem("user_preferences");
+          localStorage.removeItem("app_settings");
+          localStorage.removeItem("last_visited");
+          console.log("onAuthStateChange: 로컬스토리지 정리 완료");
+        } catch (storageError) {
+          console.log(
+            "onAuthStateChange: 로컬스토리지 정리 중 오류:",
+            storageError
+          );
+        }
       } else if (event === "TOKEN_REFRESHED") {
         console.log("토큰 갱신 감지");
         // 토큰이 갱신되면 사용자 데이터도 새로고침
@@ -159,18 +179,42 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     try {
       console.log("로그아웃 시작");
+
+      // 로컬 상태 초기화
+      setUser(null);
+      setUserData(null);
+      setError(null);
+
+      // 캐시 정리
+      clearUserDataCache();
+
+      // 로컬스토리지 초기화
+      try {
+        // Supabase 관련 데이터 정리
+        const supabaseKey =
+          "sb-" +
+          process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1]?.split(".")[0] +
+          "-auth-token";
+        localStorage.removeItem(supabaseKey);
+
+        // 기타 앱 관련 데이터 정리
+        localStorage.removeItem("user_preferences");
+        localStorage.removeItem("app_settings");
+        localStorage.removeItem("last_visited");
+
+        console.log("로컬스토리지 초기화 완료");
+      } catch (storageError) {
+        console.log("로컬스토리지 정리 중 오류:", storageError);
+      }
+
+      // Supabase 로그아웃
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        console.error("로그아웃 실패:", error);
+        console.error("Supabase 로그아웃 실패:", error);
         setError(error.message);
       } else {
         console.log("로그아웃 완료");
-        setUser(null);
-        setUserData(null);
-        setError(null);
-        // 캐시 정리
-        clearUserDataCache();
       }
     } catch (error) {
       console.error("로그아웃 중 오류:", error);
